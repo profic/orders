@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.Set;
 
-public class Container<T extends Priceable & IntIdentifiable> implements IContainer<T> {
+public class Container<T extends OrderEntry> implements IContainer<T> {
     private final NavigableMap<Integer, Set<T>> elByPrice;
     private final Object[]                      elById;
 

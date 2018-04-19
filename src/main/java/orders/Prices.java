@@ -1,7 +1,11 @@
 package orders;
 
-class Prices {
-    private int[] prices = new int[Orders.PRICES_COUNT];
+public class Prices {
+    private final int[] prices;
+
+    public Prices(final int size) {
+        prices = new int[size];
+    }
 
     public void increase(int price, int count) {
         put(price, count);

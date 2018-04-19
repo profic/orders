@@ -1,6 +1,6 @@
 package orders;
 
-public interface IContainer<T extends Priceable & IntIdentifiable> {
+public interface IContainer<T extends OrderEntry> {
     void add(T el);
 
     void removeFirst();
