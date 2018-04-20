@@ -4,14 +4,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Orders {
 
-    private static final Pattern p = Pattern.compile("o,([0-9]+),b,([0-9]+),([0-9]+)");
-
+    private static final Comparator<Integer> BUYER_PRICE_COMPARATOR = (o1, o2) -> Integer.compare(o2, o1);
 
     public static void main(String[] args) {
         test();
@@ -44,14 +42,14 @@ public class Orders {
         else if (s.startsWith("q")) processQuery(s);
     }
 
+    private static final int    PRICES_COUNT = 10_000;
+    private static final int    IDS_COUNT    = 1_000_000;
+    private static final Prices prices       = new Prices(PRICES_COUNT);
 
-    static final int                PRICES_COUNT = 10_000;
-    static final int                IDS_COUNT    = 1_000_000;
-    static       IContainer<Buyer>  buyers       = new Container<>(new TreeMap<>((o1, o2) -> Integer.compare(o2, o1)), IDS_COUNT);
-    static       IContainer<Seller> sellers      = new Container<>(new TreeMap<>(), IDS_COUNT);
-    static       Prices             prices       = new Prices(PRICES_COUNT);
+    private static final IContainer<Buyer>  buyers  = new Container<>(new TreeMap<>(BUYER_PRICE_COMPARATOR), IDS_COUNT);
+    private static final IContainer<Seller> sellers = new Container<>(new TreeMap<>(), IDS_COUNT);
 
-    public static void processQuery(final String s) {
+    private static void processQuery(final String s) {
         if (s.charAt(2) == 'b') {
             showBuyer();
         } else if (s.charAt(3) == 'e') {
@@ -59,7 +57,6 @@ public class Orders {
         } else {
             showPrice(s);
         }
-
     }
 
     private static void showPrice(final String s) {
@@ -88,9 +85,7 @@ public class Orders {
     }
 
     private static void cancelOrder(final String s) {
-//        buyers.removeById(Integer.parseInt(s));
         int id = Integer.parseInt(s.substring(s.indexOf(",") + 1));
-        // todo: optimize: create arrays with size 1M and check whether such id is present
         sellers.removeById(id);
         buyers.removeById(id);
     }
@@ -107,7 +102,6 @@ public class Orders {
     }
 
     private static void buy(final String s, final int endIdIdx) {
-//        Buyer buyer = parseBuyerRegex(s); // todo:
         Buyer buyer = parseBuyer(s, endIdIdx);
         buy(buyer);
         if (buyer.hasItems()) {
@@ -127,24 +121,7 @@ public class Orders {
         }
     }
 
-
-    public static Buyer parseBuyerRegex(final String s) {
-        Matcher m = p.matcher(s);
-        if (m.matches()) {
-            int id    = Integer.parseInt(m.group(1));
-            int price = Integer.parseInt(m.group(2));
-            int size  = Integer.parseInt(m.group(3));
-            return new Buyer(id, size, price);
-        } else {
-            throw new RuntimeException();
-        }
-    }
-
-    interface Function3<In1, In2, In3, Out> {
-        Out apply(In1 a1, In2 a2, In3 a3);
-    }
-
-    public static <T extends OrderEntry> T parse(
+    private static <T extends OrderEntry> T parse(
             final String s,
             final int endIdIdx,
             final Function3<Integer, Integer, Integer, T> f
@@ -162,11 +139,11 @@ public class Orders {
         return f.apply(id, size, price);
     }
 
-    public static Buyer parseBuyer(final String s, final int endIdIdx) {
+    private static Buyer parseBuyer(final String s, final int endIdIdx) {
         return parse(s, endIdIdx, Buyer::new);
     }
 
-    public static Seller parseSeller(final String s, final int endIdIdx) {
+    private static Seller parseSeller(final String s, final int endIdIdx) {
         return parse(s, endIdIdx, Seller::new);
     }
 
@@ -197,5 +174,4 @@ public class Orders {
         buyer.decreaesSize(seller.size());
         seller.decreaesSize(oldSize);
     }
-
 }
