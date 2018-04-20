@@ -1,15 +1,17 @@
 package orders;
 
 public abstract class OrderEntry {
-    private final int id;
-    private final int price;
-
-    private int size;
+    public int id;
+    public int price;
+    public int size;
 
     public OrderEntry(final int id, final int size, final int price) {
         this.id = id;
         this.size = size;
         this.price = price;
+    }
+
+    public OrderEntry() {
     }
 
     public int id() {

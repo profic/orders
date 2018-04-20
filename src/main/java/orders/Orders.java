@@ -11,6 +11,9 @@ import java.util.stream.Stream;
 
 public class Orders {
 
+    private static final Buyer  buyer = new Buyer();
+    private static final Seller seler = new Seller();
+
     private static final Comparator<Integer> BUYER_PRICE_COMPARATOR = (o1, o2) -> Integer.compare(o2, o1);
 
     public static void main(String[] args) throws Exception {
@@ -118,7 +121,7 @@ public class Orders {
     }
 
     private static void buy(final String s, final int endIdIdx) {
-        Buyer buyer = parseBuyer(s, endIdIdx);
+        Buyer buyer = parse(s, endIdIdx, Orders.buyer);
         buy(buyer);
         if (buyer.hasItems()) {
             buyers.add(buyer);
@@ -140,7 +143,7 @@ public class Orders {
     private static <T extends OrderEntry> T parse(
             final String s,
             final int endIdIdx,
-            final Function3<Integer, Integer, Integer, T> f
+            final T entry
     ) {
         int beginIdIdx    = 2;
         int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
@@ -151,20 +154,14 @@ public class Orders {
         int id    = Utils.parseInt(s.substring(beginIdIdx, endIdIdx));
         int price = Utils.parseInt(s.substring(beginPriceIdx, endPriceIdx));
         int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
-
-        return f.apply(id, size, price);
-    }
-
-    private static Buyer parseBuyer(final String s, final int endIdIdx) {
-        return parse(s, endIdIdx, Buyer::new);
-    }
-
-    private static Seller parseSeller(final String s, final int endIdIdx) {
-        return parse(s, endIdIdx, Seller::new);
+        entry.id = id;
+        entry.size = size;
+        entry.price = price;
+        return entry;
     }
 
     private static void sell(final String s, final int endIdIdx) {
-        Seller seller = parseSeller(s, endIdIdx);
+        Seller seller = parse(s, endIdIdx, seler);
         sell(seller);
 
         if (seller.hasItems()) {
