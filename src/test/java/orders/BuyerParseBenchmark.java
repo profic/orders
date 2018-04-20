@@ -25,13 +25,13 @@ public class BuyerParseBenchmark {
         new Runner(opt).run();
     }
 
-        @Param({"2", "3", "4", "5", "6"})
+    @Param({"2", "3", "4", "5", "6"})
 //    @Param({"6"})
-    int idLen;
+            int idLen;
 
-        @Param({"2", "3", "4", "5", "6"})
+    @Param({"2", "3", "4", "5", "6"})
 //    @Param({"6"})
-    int priceLen;
+            int priceLen;
 
 
     String s;
@@ -46,7 +46,6 @@ public class BuyerParseBenchmark {
             6, 999999
     );
 
-//    @Setup(Level.Invocation)
     @Setup(Level.Iteration)
     public void setup() {
         s = String.format("o,%s,b,%s,40", r.nextInt(m.get(idLen)), r.nextInt(m.get(priceLen)));
@@ -54,13 +53,8 @@ public class BuyerParseBenchmark {
     }
 
     @Benchmark
-    public void regex() {
-        Orders.parseBuyerRegex(s);
-    }
-
-    @Benchmark
     public void plain() {
-        Orders.parseBuyer(s, idxSndComma);
+        Orders.parse(s, Buyer::new, Orders.pattern);
     }
 
 }

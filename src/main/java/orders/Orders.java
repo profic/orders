@@ -7,14 +7,16 @@ import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class Orders {
 
-    private static final Pattern p = Pattern.compile("o,([0-9]+),b,([0-9]+),([0-9]+)");
+    public static final Pattern pattern = Pattern.compile("o,([0-9]+),[b,s],([0-9]+),([0-9]+)");
 
 
-    public static void main(String[] args) {
-        test();
+    public static void main(String[] args) throws Exception {
+//        test();
+        doWork();
     }
 
     private static void test() {
@@ -34,8 +36,10 @@ public class Orders {
         ).forEach(Orders::processLine);
     }
 
-    private static void doWork() throws IOException {
-        Files.lines(Paths.get("")).forEach(Orders::processLine);
+    public static void doWork() throws IOException {
+        try (Stream<String> lines = Files.lines(Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop\\data2.txt"))) {
+            lines.forEach(Orders::processLine);
+        }
     }
 
     private static void processLine(final String s) {
@@ -43,7 +47,6 @@ public class Orders {
         else if (s.startsWith("c")) cancelOrder(s);
         else if (s.startsWith("q")) processQuery(s);
     }
-
 
     static final int                PRICES_COUNT = 10_000;
     static final int                IDS_COUNT    = 1_000_000;
@@ -64,31 +67,30 @@ public class Orders {
 
     private static void showPrice(final String s) {
         int price = Integer.parseInt(s.substring(s.lastIndexOf(',') + 1, s.length()));
-        System.out.println(prices.getPrice(price));
+        print(prices.getPrice(price));
     }
 
     private static void showBuyer() {
         Buyer buyer = buyers.first();
         if (buyer == null) {
-            System.out.println("empty");
+            print("empty");
         } else {
             int price = buyer.price();
-            System.out.println(price + "," + prices.getPrice(price));
+            print(price + "," + prices.getPrice(price));
         }
     }
 
     private static void showSeller() {
         Seller seller = sellers.first();
         if (seller == null) {
-            System.out.println("empty");
+            print("empty");
         } else {
             int price = seller.price();
-            System.out.println(price + "," + prices.getPrice(price));
+            print(price + "," + prices.getPrice(price));
         }
     }
 
     private static void cancelOrder(final String s) {
-//        buyers.removeById(Integer.parseInt(s));
         int id = Integer.parseInt(s.substring(s.indexOf(",") + 1));
         // todo: optimize: create arrays with size 1M and check whether such id is present
         sellers.removeById(id);
@@ -100,15 +102,14 @@ public class Orders {
         int orderType = endIdIdx + 1;
 
         if (s.charAt(orderType) == 's') {
-            sell(s, endIdIdx);
+            sell(s);
         } else {
-            buy(s, endIdIdx);
+            buy(s);
         }
     }
 
-    private static void buy(final String s, final int endIdIdx) {
-//        Buyer buyer = parseBuyerRegex(s); // todo:
-        Buyer buyer = parseBuyer(s, endIdIdx);
+    private static void buy(final String s) {
+        Buyer buyer = parse(s, Buyer::new); // todo:
         buy(buyer);
         if (buyer.hasItems()) {
             buyers.add(buyer);
@@ -127,51 +128,23 @@ public class Orders {
         }
     }
 
-
-    public static Buyer parseBuyerRegex(final String s) {
-        Matcher m = p.matcher(s);
+    public static <T extends OrderEntry> T parse(
+            final String s,
+            final Function3<Integer, Integer, Integer, T> f
+    ) {
+        Matcher m = pattern.matcher(s);
         if (m.matches()) {
             int id    = Integer.parseInt(m.group(1));
             int price = Integer.parseInt(m.group(2));
             int size  = Integer.parseInt(m.group(3));
-            return new Buyer(id, size, price);
+            return f.apply(id, size, price);
         } else {
             throw new RuntimeException();
         }
     }
 
-    interface Function3<In1, In2, In3, Out> {
-        Out apply(In1 a1, In2 a2, In3 a3);
-    }
-
-    public static <T extends OrderEntry> T parse(
-            final String s,
-            final int endIdIdx,
-            final Function3<Integer, Integer, Integer, T> f
-    ) {
-        int beginIdIdx    = 2;
-        int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
-        int endPriceIdx   = s.lastIndexOf(',', s.length() - 2); // todo: s.length() - 2 maybe superfluous
-        int endSizeIdx    = s.length();
-        int beginSizeIdx  = endPriceIdx + 1;
-
-        int id    = Integer.parseInt(s.substring(beginIdIdx, endIdIdx));
-        int price = Integer.parseInt(s.substring(beginPriceIdx, endPriceIdx));
-        int size  = Integer.parseInt(s.substring(beginSizeIdx, endSizeIdx));
-
-        return f.apply(id, size, price);
-    }
-
-    public static Buyer parseBuyer(final String s, final int endIdIdx) {
-        return parse(s, endIdIdx, Buyer::new);
-    }
-
-    public static Seller parseSeller(final String s, final int endIdIdx) {
-        return parse(s, endIdIdx, Seller::new);
-    }
-
-    private static void sell(final String s, final int endIdIdx) {
-        Seller seller = parseSeller(s, endIdIdx);
+    private static void sell(final String s) {
+        Seller seller = parse(s, Seller::new);
         sell(seller);
 
         if (seller.hasItems()) {
@@ -196,6 +169,12 @@ public class Orders {
         int oldSize = buyer.size();
         buyer.decreaesSize(seller.size());
         seller.decreaesSize(oldSize);
+    }
+
+    private static void print(Object o) {
+        if (true == false) {
+            System.out.println(o);
+        }
     }
 
 }
