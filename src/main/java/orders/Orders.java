@@ -2,17 +2,20 @@ package orders;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 public class Orders {
 
     private static final Comparator<Integer> BUYER_PRICE_COMPARATOR = (o1, o2) -> Integer.compare(o2, o1);
 
-    public static void main(String[] args) {
-        test();
+    public static void main(String[] args) throws Exception {
+//        test();
+        doWork();
     }
 
     private static void test() {
@@ -32,8 +35,11 @@ public class Orders {
         ).forEach(Orders::processLine);
     }
 
-    private static void doWork() throws IOException {
-        Files.lines(Paths.get("")).forEach(Orders::processLine);
+    public static void doWork() throws IOException {
+        Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
+        try (Stream<String> lines = Files.lines(path)) {
+            lines.forEach(Orders::processLine);
+        }
     }
 
     private static void processLine(final String s) {
@@ -50,51 +56,61 @@ public class Orders {
     private static final IContainer<Seller> sellers = new Container<>(new TreeMap<>(), IDS_COUNT);
 
     private static void processQuery(final String s) {
-        if (s.charAt(2) == 'b') {
+        if (isBuyerQuery(s)) {
             showBuyer();
-        } else if (s.charAt(3) == 'e') {
+        } else if (isSellerQuery(s)) {
             showSeller();
         } else {
             showPrice(s);
         }
     }
 
+    private static boolean isSellerQuery(final String s) {
+        return s.charAt(3) == 'e';
+    }
+
+    private static boolean isBuyerQuery(final String s) {
+        return s.charAt(2) == 'b';
+    }
+
     private static void showPrice(final String s) {
-        int price = Integer.parseInt(s.substring(s.lastIndexOf(',') + 1, s.length()));
-        System.out.println(prices.getPrice(price));
+        int priceBeginIdx = s.lastIndexOf(',') + 1;
+        int priceEndIdx   = s.length();
+        int price         = Utils.parseInt(s.substring(priceBeginIdx, priceEndIdx));
+        print(prices.getPrice(price));
     }
 
     private static void showBuyer() {
         Buyer buyer = buyers.first();
         if (buyer == null) {
-            System.out.println("empty");
+            print("empty");
         } else {
             int price = buyer.price();
-            System.out.println(price + "," + prices.getPrice(price));
+            print(price + "," + prices.getPrice(price));
         }
     }
 
     private static void showSeller() {
         Seller seller = sellers.first();
         if (seller == null) {
-            System.out.println("empty");
+            print("empty");
         } else {
             int price = seller.price();
-            System.out.println(price + "," + prices.getPrice(price));
+            print(price + "," + prices.getPrice(price));
         }
     }
 
     private static void cancelOrder(final String s) {
-        int id = Integer.parseInt(s.substring(s.indexOf(",") + 1));
+        int id = Utils.parseInt(s.substring(2));
         sellers.removeById(id);
         buyers.removeById(id);
     }
 
     private static void processOrder(final String s) {
-        int endIdIdx  = s.indexOf(',', 2);
-        int orderType = endIdIdx + 1;
+        int  endIdIdx  = s.indexOf(',', 2);
+        char orderType = s.charAt(endIdIdx + 1);
 
-        if (s.charAt(orderType) == 's') {
+        if (orderType == 's') {
             sell(s, endIdIdx);
         } else {
             buy(s, endIdIdx);
@@ -132,9 +148,9 @@ public class Orders {
         int endSizeIdx    = s.length();
         int beginSizeIdx  = endPriceIdx + 1;
 
-        int id    = Integer.parseInt(s.substring(beginIdIdx, endIdIdx));
-        int price = Integer.parseInt(s.substring(beginPriceIdx, endPriceIdx));
-        int size  = Integer.parseInt(s.substring(beginSizeIdx, endSizeIdx));
+        int id    = Utils.parseInt(s.substring(beginIdIdx, endIdIdx));
+        int price = Utils.parseInt(s.substring(beginPriceIdx, endPriceIdx));
+        int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
 
         return f.apply(id, size, price);
     }
@@ -173,5 +189,11 @@ public class Orders {
         int oldSize = buyer.size();
         buyer.decreaesSize(seller.size());
         seller.decreaesSize(oldSize);
+    }
+
+    private static void print(Object o) {
+        if (false == true) {
+            System.out.println(o);
+        }
     }
 }
