@@ -10,6 +10,22 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 public class OrderBenchmark {
     public static void main(String[] args) throws RunnerException {
+//        runWithProfiler();
+        runPlain();
+    }
+
+    private static void runPlain() throws RunnerException {
+
+        Options opt = new OptionsBuilder()
+                .include(OrderBenchmark.class.getSimpleName())
+                .warmupIterations(10)
+                .measurementIterations(10)
+                .forks(1)
+                .build();
+        new Runner(opt).run();
+    }
+
+    private static void runWithProfiler() throws RunnerException {
         String userDir = System.getProperty("user.dir");
         final String destinationFolder = System.getProperty("basedir",
                                                             userDir) + "/target";

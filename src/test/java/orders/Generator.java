@@ -14,7 +14,7 @@ public class Generator {
     public static void main(String[] args) throws Exception {
 //        Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data.txt");
 //        write(path.toFile());
-        Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
+        Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data3.txt");
         write2(path.toFile());
 //            nio(path);
 //        io(path);
@@ -102,7 +102,11 @@ public class Generator {
                         writer.newLine();
                     }
                     if (i == 10) {
-                        writer.write("q,sellers");
+                        if (r.nextBoolean()) {
+                            writer.write("q,sellers");
+                        } else {
+                            writer.write("q,buyers");
+                        }
                         writer.newLine();
                     }
                     if (i == 13) {
@@ -114,4 +118,5 @@ public class Generator {
             }
         }
     }
+
 }

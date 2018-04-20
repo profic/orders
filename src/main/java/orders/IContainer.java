@@ -7,7 +7,7 @@ public interface IContainer<T extends OrderEntry> {
 
     T first();
 
-    void removeById(Integer id);
+    void removeById(int id);
 
     void remove(T el);
 

@@ -28,7 +28,7 @@ public abstract class OrderEntry {
         this.size += size;
     }
 
-    public void decreaesSize(int size) {
+    public void decreaseSize(int size) {
         this.size -= size;
     }
 

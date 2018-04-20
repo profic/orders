@@ -6,12 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.TreeMap;
 import java.util.stream.Stream;
 
 public class Orders {
-
-    private static final Comparator<Integer> BUYER_PRICE_COMPARATOR = (o1, o2) -> Integer.compare(o2, o1);
 
     public static void main(String[] args) throws Exception {
 //        test();
@@ -52,8 +49,12 @@ public class Orders {
     private static final int    IDS_COUNT    = 1_000_000;
     private static final Prices prices       = new Prices(PRICES_COUNT);
 
-    private static final IContainer<Buyer>  buyers  = new Container<>(new TreeMap<>(BUYER_PRICE_COMPARATOR), IDS_COUNT);
-    private static final IContainer<Seller> sellers = new Container<>(new TreeMap<>(), IDS_COUNT);
+//    private static final Comparator<Integer> BUYER_PRICE_COMPARATOR = (o1, o2) -> Integer.compare(o2, o1);
+//    private static final IContainer<Buyer>  buyers  = new Container<>(new TreeMap<>(BUYER_PRICE_COMPARATOR), IDS_COUNT);
+//    private static final IContainer<Seller> sellers = new Container<>(new TreeMap<>(), IDS_COUNT);
+    public static final  Comparator<Buyer>  REVERSED = Comparator.comparingInt(Buyer::price).reversed();
+    private static final IContainer<Buyer>  buyers   = new HeapContainer<>(REVERSED, IDS_COUNT);
+    private static final IContainer<Seller> sellers  = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
 
     private static void processQuery(final String s) {
         if (isBuyerQuery(s)) {
@@ -129,7 +130,7 @@ public class Orders {
     private static void buy(final Buyer buyer) {
         Seller seller = sellers.first();
         while (seller != null && seller.price() <= buyer.price() && buyer.hasItems()) {
-            buy(buyer, seller);
+            buy(buyer, seller, seller.price());
             if (!seller.hasItems()) {
                 sellers.removeFirst();
                 seller = sellers.first();
@@ -176,7 +177,7 @@ public class Orders {
     private static void sell(final Seller seller) {
         Buyer buyer = buyers.first();
         while (buyer != null && seller.hasItems() && buyer.price() >= seller.price()) {
-            buy(buyer, seller);
+            buy(buyer, seller, buyer.price());
             if (!buyer.hasItems()) {
                 buyers.removeFirst();
                 buyer = buyers.first();
@@ -184,15 +185,16 @@ public class Orders {
         }
     }
 
-    private static void buy(Buyer buyer, Seller seller) {
-        prices.decrease(buyer.price(), Math.min(seller.size(), buyer.size()));
+    private static void buy(Buyer buyer, Seller seller, int decreasePrice) {
+        prices.decrease(decreasePrice, Math.min(seller.size(), buyer.size()));
         int oldSize = buyer.size();
-        buyer.decreaesSize(seller.size());
-        seller.decreaesSize(oldSize);
+        buyer.decreaseSize(seller.size());
+        seller.decreaseSize(oldSize);
     }
 
     private static void print(Object o) {
-        if (false == true) {
+//        if (false == true) {
+        if (true) {
             System.out.println(o);
         }
     }

@@ -46,7 +46,7 @@ public class Container<T extends OrderEntry> implements IContainer<T> {
         }
     }
 
-    @Override public void removeById(Integer id) {
+    @Override public void removeById(int id) {
         T el = (T) elById[id];
         if (el != null) {
             remove(el);
