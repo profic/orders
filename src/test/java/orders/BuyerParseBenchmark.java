@@ -54,7 +54,7 @@ public class BuyerParseBenchmark {
 
     @Benchmark
     public void plain() {
-        Orders.parse(s, Buyer::new, Orders.pattern);
+        Orders.parse(s, Buyer::new);
     }
 
 }
