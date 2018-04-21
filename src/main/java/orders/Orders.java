@@ -86,7 +86,7 @@ public class Orders {
     }
 
     private void buy(final String s, final int endIdIdx) {
-        Buyer buyer = parseBuyer(s, endIdIdx);
+        Buyer buyer = parse(s, endIdIdx, Buyer::new);
         buy(buyer);
         if (buyer.hasItems()) {
             buyers.add(buyer);
@@ -123,16 +123,8 @@ public class Orders {
         return f.apply(id, size, price);
     }
 
-    private Buyer parseBuyer(final String s, final int endIdIdx) {
-        return parse(s, endIdIdx, Buyer::new);
-    }
-
-    private Seller parseSeller(final String s, final int endIdIdx) {
-        return parse(s, endIdIdx, Seller::new);
-    }
-
     private void sell(final String s, final int endIdIdx) {
-        Seller seller = parseSeller(s, endIdIdx);
+        Seller seller = parse(s, endIdIdx, Seller::new);
         sell(seller);
 
         if (seller.hasItems()) {
