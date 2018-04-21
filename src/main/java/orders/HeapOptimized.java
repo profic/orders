@@ -7,10 +7,11 @@ public class HeapOptimized<E extends OrderEntry> {
 
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
-    private Object[]      queue;
-    private int           size = 0;
-    private int[]         indices;
-    private Comparator<E> cmp;
+    private final Comparator<E> cmp;
+
+    private Object[] queue;
+    private int      size = 0;
+    private int[]    indices;
 
 
     public HeapOptimized(int initialCapacity, Comparator<E> cmp) {

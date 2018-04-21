@@ -55,9 +55,9 @@ public class Orders {
 
     private void processQuery(final String s) {
         if (isBuyerQuery(s)) {
-            showBuyer();
+            showPrice(buyers.first());
         } else if (isSellerQuery(s)) {
-            showSeller();
+            showPrice(sellers.first());
         } else {
             showPrice(s);
         }
@@ -78,22 +78,11 @@ public class Orders {
         print(prices.getPrice(price));
     }
 
-    private void showBuyer() {
-        Buyer buyer = buyers.first();
-        if (buyer == null) {
+    private void showPrice(OrderEntry entry) {
+        if (entry == null) {
             print("empty");
         } else {
-            int price = buyer.price();
-            print(price + "," + prices.getPrice(price));
-        }
-    }
-
-    private void showSeller() {
-        Seller seller = sellers.first();
-        if (seller == null) {
-            print("empty");
-        } else {
-            int price = seller.price();
+            int price = entry.price();
             print(price + "," + prices.getPrice(price));
         }
     }

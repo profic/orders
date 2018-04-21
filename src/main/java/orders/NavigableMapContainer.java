@@ -5,13 +5,13 @@ import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.Set;
 
-public class Container<T extends OrderEntry> implements IContainer<T> {
+public class NavigableMapContainer<T extends OrderEntry> implements IContainer<T> {
     private final NavigableMap<Integer, Set<T>> elByPrice;
     private final Object[]                      elById;
 
     private int size;
 
-    public Container(final NavigableMap<Integer, Set<T>> elByPrice, int capacity) {
+    public NavigableMapContainer(final NavigableMap<Integer, Set<T>> elByPrice, int capacity) {
         this.elByPrice = elByPrice;
         elById = new Object[capacity];
     }

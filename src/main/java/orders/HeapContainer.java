@@ -4,33 +4,12 @@ import java.util.Comparator;
 
 public class HeapContainer<T extends OrderEntry> implements IContainer<T> {
     private final HeapOptimized<T> heap;
-    Comparator<T> cmp;
 
     public HeapContainer(Comparator<T> cmp, int capacity) {
-        heap = new HeapOptimized<>(capacity + 1, cmp);
-        this.cmp = cmp;
+        this.heap = new HeapOptimized<>(capacity + 1, cmp);
     }
 
     @Override public void add(T el) {
-        // todo: cleanup
-        if (first() != null) {
-            T firstBeforeInsert = first();
-
-            int     res              = cmp.compare(firstBeforeInsert, el);
-            T       firstAfterInsert = first();
-            boolean assert_;
-            if (res < 0) { // new el less than curr
-                assert_ = cmp.compare(firstAfterInsert, firstBeforeInsert) == 0;
-            } else if (res > 0) { // new el bigger than curr
-                assert_ = cmp.compare(firstAfterInsert, firstBeforeInsert) == 0;
-            } else { // new and curr first elements are equal
-                assert_ = cmp.compare(firstAfterInsert, el) == 0;
-            }
-
-            if (!assert_) {
-                throw new RuntimeException();
-            }
-        }
         heap.add(el);
     }
 
@@ -46,26 +25,13 @@ public class HeapContainer<T extends OrderEntry> implements IContainer<T> {
 
     @Override public void removeById(int id) {
         if (!isEmpty()) {
-            // todo: cleanup
-            T firstBefore = first();
             heap.removeById(id);
-            if (firstBefore.id() != id) {
-                if (firstBefore != first()) {
-                    throw new RuntimeException();
-                }
-            }
         }
     }
 
     @Override public void remove(T el) {
-        if (isEmpty()) {
-            T firstBefore = first();
+        if (!isEmpty()) {
             heap.remove(el);
-            if (firstBefore.id() != el.id()) {
-                if (firstBefore != first()) {
-                    throw new RuntimeException();
-                }
-            }
         }
     }
 
