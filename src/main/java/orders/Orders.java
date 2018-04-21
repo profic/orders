@@ -3,7 +3,6 @@ package orders;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,105 +10,85 @@ import java.util.stream.Stream;
 
 public class Orders {
 
-    public static final Pattern pattern = Pattern.compile("o,([0-9]+),[b,s],([0-9]+),([0-9]+)");
+    private static final Pattern pattern = Pattern.compile("o,([0-9]+),[b,s],([0-9]+),([0-9]+)");
 
+    private final int PRICES_COUNT = 10_000;
+    private final int IDS_COUNT    = 1_000_000;
+
+    private final IContainer<Buyer>  buyers  = new Container<>(new TreeMap<>((o1, o2) -> Integer.compare(o2, o1)), IDS_COUNT);
+    private final IContainer<Seller> sellers = new Container<>(new TreeMap<>(), IDS_COUNT);
+    private final Prices             prices  = new Prices(PRICES_COUNT);
 
     public static void main(String[] args) throws Exception {
-//        test();
-        doWork();
+        new Orders().doWork();
     }
 
-    private static void test() {
-        Arrays.asList(
-                "o,0,b,95,40",
-                "o,1,b,96,20",
-                "q,buyers",
-                "o,2,b,96,10",
-                "o,3,s,101,300",
-                "o,4,s,99,50",
-                "o,5,s,99,10",
-                "q,sellers",
-                "o,6,s,99,15",
-                "c,1",
-                "o,7,s,91,30",
-                "q,size,95"
-        ).forEach(Orders::processLine);
-    }
-
-    public static void doWork() throws IOException {
+    private void doWork() throws IOException {
         try (Stream<String> lines = Files.lines(Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop\\data2.txt"))) {
-            lines.forEach(Orders::processLine);
+            lines.forEach(this::processLine);
         }
     }
 
-    private static void processLine(final String s) {
+    private void processLine(final String s) {
         if (s.startsWith("o")) processOrder(s);
         else if (s.startsWith("c")) cancelOrder(s);
         else if (s.startsWith("q")) processQuery(s);
     }
 
-    static final int                PRICES_COUNT = 10_000;
-    static final int                IDS_COUNT    = 1_000_000;
-    static       IContainer<Buyer>  buyers       = new Container<>(new TreeMap<>((o1, o2) -> Integer.compare(o2, o1)), IDS_COUNT);
-    static       IContainer<Seller> sellers      = new Container<>(new TreeMap<>(), IDS_COUNT);
-    static       Prices             prices       = new Prices(PRICES_COUNT);
-
-    public static void processQuery(final String s) {
-        if (s.charAt(2) == 'b') {
-            showBuyer();
-        } else if (s.charAt(3) == 'e') {
-            showSeller();
+    private void processQuery(final String s) {
+        if (isBuyerQuery(s)) {
+            showPrice(buyers.first());
+        } else if (isSellerQuery(s)) {
+            showPrice(sellers.first());
         } else {
             showPrice(s);
         }
-
     }
 
-    private static void showPrice(final String s) {
-        int price = Integer.parseInt(s.substring(s.lastIndexOf(',') + 1, s.length()));
+    private boolean isSellerQuery(final String s) {
+        return s.charAt(3) == 'e';
+    }
+
+    private boolean isBuyerQuery(final String s) {
+        return s.charAt(2) == 'b';
+    }
+
+
+    private void showPrice(final String s) {
+        int priceBeginIdx = s.lastIndexOf(',') + 1;
+        int priceEndIdx   = s.length();
+        int price         = Integer.parseInt(s.substring(priceBeginIdx, priceEndIdx));
         print(prices.getPrice(price));
     }
 
-    private static void showBuyer() {
-        Buyer buyer = buyers.first();
-        if (buyer == null) {
+    private void showPrice(OrderEntry entry) {
+        if (entry == null) {
             print("empty");
         } else {
-            int price = buyer.price();
+            int price = entry.price();
             print(price + "," + prices.getPrice(price));
         }
     }
 
-    private static void showSeller() {
-        Seller seller = sellers.first();
-        if (seller == null) {
-            print("empty");
-        } else {
-            int price = seller.price();
-            print(price + "," + prices.getPrice(price));
-        }
-    }
-
-    private static void cancelOrder(final String s) {
+    private void cancelOrder(final String s) {
         int id = Integer.parseInt(s.substring(s.indexOf(",") + 1));
-        // todo: optimize: create arrays with size 1M and check whether such id is present
         sellers.removeById(id);
         buyers.removeById(id);
     }
 
-    private static void processOrder(final String s) {
-        int endIdIdx  = s.indexOf(',', 2);
-        int orderType = endIdIdx + 1;
+    private void processOrder(final String s) {
+        int  endIdIdx  = s.indexOf(',', 2);
+        char orderType = s.charAt(endIdIdx + 1);
 
-        if (s.charAt(orderType) == 's') {
+        if (orderType == 's') {
             sell(s);
         } else {
             buy(s);
         }
     }
 
-    private static void buy(final String s) {
-        Buyer buyer = parse(s, Buyer::new); // todo:
+    private void buy(final String s) {
+        Buyer buyer = parse(s, Buyer::new);
         buy(buyer);
         if (buyer.hasItems()) {
             buyers.add(buyer);
@@ -117,10 +96,10 @@ public class Orders {
         }
     }
 
-    private static void buy(final Buyer buyer) {
+    private void buy(final Buyer buyer) {
         Seller seller = sellers.first();
         while (seller != null && seller.price() <= buyer.price() && buyer.hasItems()) {
-            buy(buyer, seller);
+            buy(buyer, seller, seller.price());
             if (!seller.hasItems()) {
                 sellers.removeFirst();
                 seller = sellers.first();
@@ -128,7 +107,7 @@ public class Orders {
         }
     }
 
-    public static <T extends OrderEntry> T parse(
+    private <T extends OrderEntry> T parse(
             final String s,
             final Function3<Integer, Integer, Integer, T> f
     ) {
@@ -143,7 +122,7 @@ public class Orders {
         }
     }
 
-    private static void sell(final String s) {
+    private void sell(final String s) {
         Seller seller = parse(s, Seller::new);
         sell(seller);
 
@@ -153,10 +132,10 @@ public class Orders {
         }
     }
 
-    private static void sell(final Seller seller) {
+    private void sell(final Seller seller) {
         Buyer buyer = buyers.first();
         while (buyer != null && seller.hasItems() && buyer.price() >= seller.price()) {
-            buy(buyer, seller);
+            buy(buyer, seller, buyer.price());
             if (!buyer.hasItems()) {
                 buyers.removeFirst();
                 buyer = buyers.first();
@@ -164,14 +143,15 @@ public class Orders {
         }
     }
 
-    private static void buy(Buyer buyer, Seller seller) {
-        prices.decrease(buyer.price(), Math.min(seller.size(), buyer.size()));
+    private void buy(Buyer buyer, Seller seller, int decreasePrice) {
+        prices.decrease(decreasePrice, Math.min(seller.size(), buyer.size()));
         int oldSize = buyer.size();
-        buyer.decreaesSize(seller.size());
-        seller.decreaesSize(oldSize);
+        buyer.decreaseSize(seller.size());
+        seller.decreaseSize(oldSize);
     }
 
-    private static void print(Object o) {
+
+    private void print(Object o) {
         if (true == false) {
             System.out.println(o);
         }
