@@ -3,11 +3,11 @@ package orders;
 import java.util.Comparator;
 
 public class HeapContainer<T extends OrderEntry> implements IContainer<T> {
-    private final SedgewickHeapOptimized<T> heap;
+    private final HeapOptimized<T> heap;
     Comparator<T> cmp;
 
     public HeapContainer(Comparator<T> cmp, int capacity) {
-        heap = new SedgewickHeapOptimized<>(capacity, cmp);
+        heap = new HeapOptimized<>(capacity + 1, cmp);
         this.cmp = cmp;
     }
 
@@ -16,8 +16,8 @@ public class HeapContainer<T extends OrderEntry> implements IContainer<T> {
         if (first() != null) {
             T firstBeforeInsert = first();
 
-            int res = cmp.compare(firstBeforeInsert, el);
-            T firstAfterInsert = first();
+            int     res              = cmp.compare(firstBeforeInsert, el);
+            T       firstAfterInsert = first();
             boolean assert_;
             if (res < 0) { // new el less than curr
                 assert_ = cmp.compare(firstAfterInsert, firstBeforeInsert) == 0;
@@ -31,12 +31,12 @@ public class HeapContainer<T extends OrderEntry> implements IContainer<T> {
                 throw new RuntimeException();
             }
         }
-        heap.insert(el);
+        heap.add(el);
     }
 
     @Override public void removeFirst() {
         if (!isEmpty()) {
-            heap.delFirst();
+            heap.removeFirst();
         }
     }
 

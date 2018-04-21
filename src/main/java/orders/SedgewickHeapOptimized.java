@@ -2,7 +2,7 @@ package orders;
 
 import java.util.*;
 
-public class SedgewickHeapOptimized<Key extends OrderEntry> {
+public class SedgewickHeapOptimized<Key extends OrderEntry> implements Heap<Key> {
     private Object[]        arr;
     private Comparator<Key> cmp;
     private int             size;
@@ -18,15 +18,15 @@ public class SedgewickHeapOptimized<Key extends OrderEntry> {
         }
     }
 
-    public boolean isEmpty() {
+    @Override public boolean isEmpty() {
         return size == 0;
     }
 
-    public int size() {
+    @Override public int size() {
         return size;
     }
 
-    @SuppressWarnings("unchecked")
+    @Override @SuppressWarnings("unchecked")
     public Key first() {
         if (isEmpty()) {
             throw new NoSuchElementException("Priority queue underflow");
@@ -35,12 +35,15 @@ public class SedgewickHeapOptimized<Key extends OrderEntry> {
     }
 
     public void test() {
-        Optional<Key> opt = Arrays.stream(arr).filter(Objects::nonNull).map(s -> (Key) s).min(cmp);
-        if (opt.isPresent()) {
-            int expected = opt.get().price();
-            if (expected != first().price()) {
-                throw new RuntimeException();
-            }
+//        Optional<Key> opt = Arrays.stream(arr).filter(Objects::nonNull).map(s -> (Key) s).min(cmp);
+//        if (opt.isPresent()) {
+//            int expected = opt.get().price();
+//            if (expected != first().price()) {
+//                throw new RuntimeException();
+//            }
+//        }
+        if (!isMinHeap()) {
+            throw new RuntimeException();
         }
     }
 
@@ -51,7 +54,7 @@ public class SedgewickHeapOptimized<Key extends OrderEntry> {
         arr = tmpArr;
     }
 
-    public void insert(Key x) {
+    @Override public void insert(Key x) {
         // double size of array if necessary
         if (size == arr.length - 1) {
             resize(2 * arr.length);
@@ -64,7 +67,7 @@ public class SedgewickHeapOptimized<Key extends OrderEntry> {
         test();
     }
 
-    @SuppressWarnings("unchecked")
+    @Override @SuppressWarnings("unchecked")
     public Key delFirst() {
         if (isEmpty()) {
             throw new NoSuchElementException("Priority queue underflow");
@@ -75,12 +78,12 @@ public class SedgewickHeapOptimized<Key extends OrderEntry> {
         return first;
     }
 
-    public void remove(Key el) {
+    @Override public void remove(Key el) {
         removeById(el.id());
         test();
     }
 
-    public void removeById(int id) {
+    @Override public void removeById(int id) {
         int idx = indices[id];
         if (idx != -1) {
             remove(id, idx);
@@ -139,5 +142,19 @@ public class SedgewickHeapOptimized<Key extends OrderEntry> {
         int id2 = swap2.id();
         indices[id1] = j;
         indices[id2] = i;
+    }
+
+    private boolean isMinHeap() {
+        return isMinHeap(1);
+    }
+
+    // is subtree of pq[1..n] rooted at k a min heap?
+    private boolean isMinHeap(int k) {
+        if (k > size) return true;
+        int left  = 2 * k;
+        int right = 2 * k + 1;
+        if (left <= size && greater(k, left)) return false;
+        if (right <= size && greater(k, right)) return false;
+        return isMinHeap(left) && isMinHeap(right);
     }
 }

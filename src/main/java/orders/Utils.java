@@ -2,9 +2,19 @@ package orders;
 
 public class Utils {
 
+    private Utils() {
+        throw new UnsupportedOperationException("No way.");
+    }
+
+    /**
+     * Faster than {@link Integer#parseInt(String)}, but with limitation: parses only positive decimal integers
+     *
+     * @param s positive decimal integer in string representation
+     * @return positive decimal integer
+     */
     public static int parseInt(final String s) {
-        final int len = s.length();
-        int       num = '0' - s.charAt(0);
+        int len = s.length();
+        int num = '0' - s.charAt(0);
 
         int i = 1;
         while (i < len) {

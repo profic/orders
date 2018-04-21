@@ -49,6 +49,6 @@ public class OrderBenchmark {
 
     @Benchmark
     public void test() throws Exception {
-        Orders.doWork();
+        new Orders().doWork();
     }
 }
