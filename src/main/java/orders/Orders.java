@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
@@ -19,25 +18,7 @@ public class Orders {
     private final IContainer<Seller> sellers           = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
 
     public static void main(String[] args) throws Exception {
-//        test();
         new Orders().doWork();
-    }
-
-    private void test() {
-        Arrays.asList(
-                "o,0,b,95,40",
-                "o,1,b,96,20",
-                "q,buyers",
-                "o,2,b,96,10",
-                "o,3,s,101,300",
-                "o,4,s,99,50",
-                "o,5,s,99,10",
-                "q,sellers",
-                "o,6,s,99,15",
-                "c,1",
-                "o,7,s,91,30",
-                "q,size,95"
-        ).forEach(this::processLine);
     }
 
     public void doWork() throws IOException {
