@@ -173,7 +173,7 @@ public class Orders {
     }
 
     public void buy(final String s, final int endIdIdx) {
-        Buyer buyer = parse(s, endIdIdx, true);
+        Buyer buyer = parse(s, endIdIdx, Ctor.BUYER);
         buy(buyer);
         if (buyer.hasItems()) {
             buyers.add(buyer);
@@ -192,23 +192,44 @@ public class Orders {
         }
     }
 
-    public <T extends OrderEntry> T parse2(
+    public <T extends OrderEntry> T parse(
             final String s,
             final int endIdIdx,
             Ctor ctor
     ) {
+
+        char[] arr = s.toCharArray();
+
         int beginIdIdx    = 2;
         int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
         int endPriceIdx   = s.lastIndexOf(',', s.length() - 2); // todo: s.length() - 2 maybe superfluous
         int endSizeIdx    = s.length();
         int beginSizeIdx  = endPriceIdx + 1;
 
-        int id    = Utils.parseInt(s.substring(beginIdIdx, endIdIdx));
-        int price = Utils.parseInt(s.substring(beginPriceIdx, endPriceIdx));
-        int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
+        int id    = Utils.parseInt(arr, beginIdIdx, endIdIdx);
+        int price = Utils.parseInt(arr, beginPriceIdx, endPriceIdx);
+        int size  = Utils.parseInt(arr, beginSizeIdx, endSizeIdx);
 
         return (T) ctor.create(id, size, price);
     }
+
+//    public <T extends OrderEntry> T parse(
+//            final String s,
+//            final int endIdIdx,
+//            Ctor ctor
+//    ) {
+//        int beginIdIdx    = 2;
+//        int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
+//        int endPriceIdx   = s.lastIndexOf(',', s.length() - 2); // todo: s.length() - 2 maybe superfluous
+//        int endSizeIdx    = s.length();
+//        int beginSizeIdx  = endPriceIdx + 1;
+//
+//        int id    = Utils.parseInt(s.substring(beginIdIdx, endIdIdx));
+//        int price = Utils.parseInt(s.substring(beginPriceIdx, endPriceIdx));
+//        int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
+//
+//        return (T) ctor.create(id, size, price);
+//    }
 
     public enum Ctor {
 
@@ -225,30 +246,8 @@ public class Orders {
         abstract <T extends OrderEntry> T create(int id, int size, int price);
     }
 
-    public <T extends OrderEntry> T parse(
-            final String s,
-            final int endIdIdx,
-            final boolean buyer
-    ) {
-        int beginIdIdx    = 2;
-        int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
-        int endPriceIdx   = s.lastIndexOf(',', s.length() - 2); // todo: s.length() - 2 maybe superfluous
-        int endSizeIdx    = s.length();
-        int beginSizeIdx  = endPriceIdx + 1;
-
-        int id    = Utils.parseInt(s.substring(beginIdIdx, endIdIdx));
-        int price = Utils.parseInt(s.substring(beginPriceIdx, endPriceIdx));
-        int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
-
-        if (buyer) {
-            return (T) new Buyer(id, size, price);
-        } else {
-            return (T) new Seller(id, size, price);
-        }
-    }
-
     public void sell(final String s, final int endIdIdx) {
-        Seller seller = parse(s, endIdIdx, false);
+        Seller seller = parse(s, endIdIdx, Ctor.SELLER);
         sell(seller);
 
         if (seller.hasItems()) {
