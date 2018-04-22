@@ -1,10 +1,14 @@
 package orders;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
 
 public class Orders {
@@ -18,15 +22,99 @@ public class Orders {
     private final IContainer<Seller> sellers           = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
 
     public static void main(String[] args) throws Exception {
-        new Orders().doWork();
+//        new Orders().doWorkSingleThread();
+//        new Orders().doWorkConcurrent();
+
+//        Path     path    = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
+//        String[] strings = Files.lines(path).toArray(String[]::new);
+//        new Orders().doWorkSingleThreadPrepared(strings);
+
+        new Orders().doWorkConcurrent2(10);
     }
 
-    public void doWork() throws IOException {
+    private final    BlockingQueue<String> q    = new ArrayBlockingQueue<>(IDS_COUNT);
+    private volatile boolean               done = false;
+
+    public void doWorkSingleThread() throws IOException {
         Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
         try (Stream<String> lines = Files.lines(path)) {
             lines.forEach(this::processLine);
         }
     }
+
+
+    public void doWorkSingleThreadPrepared() throws IOException {
+        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
+        try (Stream<String> lines = Files.lines(path)) {
+            doWorkSingleThreadPrepared(lines.toArray(String[]::new));
+        }
+    }
+
+    public void doWorkConcurrent() throws Exception {
+        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
+
+        new Thread(() -> {
+            try (Stream<String> lines = Files.lines(path)) {
+                lines.forEach(q::add);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                done = true;
+            }
+        }).start();
+        while (!done) {
+            while (!q.isEmpty()) {
+                processLine(q.take());
+            }
+        }
+    }
+
+    public void doWorkConcurrent2(final int chunks) throws Exception {
+        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
+
+        int arrSize = (int) Math.ceil((double) IDS_COUNT / chunks);
+
+        BlockingQueue<String[]> q = new ArrayBlockingQueue<>(chunks);
+
+        new Thread(() -> {
+            try (BufferedReader r = Files.newBufferedReader(path)) {
+                boolean _continue = true;
+                for (int i = 0; i < chunks && _continue; i++) {
+                    String[] buf = new String[arrSize];
+
+                    for (int j = 0; j < arrSize && _continue; j++) {
+                        String line = r.readLine();
+                        if (line != null) {
+                            buf[j] = line;
+                        } else {
+                            _continue = false;
+                        }
+                    }
+                    q.add(buf);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                done = true;
+            }
+        }).start();
+
+        while (!q.isEmpty() || !done) {
+            doWorkSingleThreadPrepared(q.take());
+        }
+    }
+
+
+    public void doWorkSingleThreadPrepared(String[] strings) {
+        for (String string : strings) {
+            if (string == null) {
+                break;
+            } else {
+                processLine(string);
+            }
+        }
+    }
+
 
     private void processLine(final String s) {
         if (s.startsWith("o")) processOrder(s);
@@ -85,7 +173,7 @@ public class Orders {
         }
     }
 
-    private void buy(final String s, final int endIdIdx) {
+    public void buy(final String s, final int endIdIdx) {
         Buyer buyer = parse(s, endIdIdx, Buyer::new);
         buy(buyer);
         if (buyer.hasItems()) {
@@ -94,7 +182,7 @@ public class Orders {
         }
     }
 
-    private void buy(final Buyer buyer) {
+    public void buy(final Buyer buyer) {
         Seller seller = sellers.first();
         while (seller != null && seller.price() <= buyer.price() && buyer.hasItems()) {
             buy(buyer, seller, seller.price());
@@ -105,7 +193,7 @@ public class Orders {
         }
     }
 
-    private <T extends OrderEntry> T parse(
+    public <T extends OrderEntry> T parse(
             final String s,
             final int endIdIdx,
             final Function3<Integer, Integer, Integer, T> f
@@ -123,7 +211,7 @@ public class Orders {
         return f.apply(id, size, price);
     }
 
-    private void sell(final String s, final int endIdIdx) {
+    public void sell(final String s, final int endIdIdx) {
         Seller seller = parse(s, endIdIdx, Seller::new);
         sell(seller);
 
@@ -133,7 +221,7 @@ public class Orders {
         }
     }
 
-    private void sell(final Seller seller) {
+    public void sell(final Seller seller) {
         Buyer buyer = buyers.first();
         while (buyer != null && seller.hasItems() && buyer.price() >= seller.price()) {
             buy(buyer, seller, buyer.price());
