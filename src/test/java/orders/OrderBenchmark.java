@@ -107,7 +107,7 @@ public class OrderBenchmark {
 //    @Param({"2", "4", "6", "8", "10", "20", "50"})
 //    int chunks;
 
-    //    @Benchmark
+        @Benchmark
     public void test5() throws Exception {
         new Orders().doWorkConcurrent2(10);
     }
@@ -122,7 +122,7 @@ public class OrderBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     public void testParse() {
         Orders o = new Orders();
         for (String s : orderStrings) {

@@ -200,11 +200,26 @@ public class Orders {
 
         char[] arr = s.toCharArray();
 
+        int len           = arr.length;
         int beginIdIdx    = 2;
-        int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
-        int endPriceIdx   = s.lastIndexOf(',', s.length() - 2); // todo: s.length() - 2 maybe superfluous
-        int endSizeIdx    = s.length();
+        int endPriceIdx   = -1;
+        int beginPriceIdx = -1;
+        int endSizeIdx    = len;
         int beginSizeIdx  = endPriceIdx + 1;
+
+        for (int i = endIdIdx + 1; i < len; i++) {
+            if (arr[i] == ',') {
+                beginPriceIdx = i + 1;
+                break;
+            }
+        }
+
+        for (int i = len - 2; i > 0; i--) {
+            if (arr[i] == ',') {
+                endPriceIdx = i;
+                break;
+            }
+        }
 
         int id    = Utils.parseInt(arr, beginIdIdx, endIdIdx);
         int price = Utils.parseInt(arr, beginPriceIdx, endPriceIdx);
