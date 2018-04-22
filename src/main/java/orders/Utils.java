@@ -12,6 +12,8 @@ public class Utils {
      * @param s positive decimal integer in string representation
      * @return positive decimal integer
      */
+
+    // todo: need to be removed
     public static int parseInt(final String s) {
         int len = s.length();
         int num = '0' - s.charAt(0);
