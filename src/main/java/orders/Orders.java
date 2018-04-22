@@ -116,33 +116,35 @@ public class Orders {
 
 
     private void processLine(final String s) {
-        if (s.startsWith("o")) processOrder(s);
-        else if (s.startsWith("c")) cancelOrder(s);
-        else if (s.startsWith("q")) processQuery(s);
+        char[] arr   = s.toCharArray();
+        char   sType = arr[0];
+        if (sType == 'o') processOrder(arr);
+        else if (sType == 'c') cancelOrder(arr);
+        else if (sType == 'q') processQuery(arr);
     }
 
-    private void processQuery(final String s) {
-        if (isBuyerQuery(s)) {
+    private void processQuery(final char[] arr) {
+        if (isBuyerQuery(arr)) {
             showPrice(buyers.first());
-        } else if (isSellerQuery(s)) {
+        } else if (isSellerQuery(arr)) {
             showPrice(sellers.first());
         } else {
-            showPrice(s);
+            showPrice(arr);
         }
     }
 
-    private boolean isSellerQuery(final String s) {
-        return s.charAt(3) == 'e';
+    private boolean isSellerQuery(final char[] arr) {
+        return arr[3] == 'e';
     }
 
-    private boolean isBuyerQuery(final String s) {
-        return s.charAt(2) == 'b';
+    private boolean isBuyerQuery(final char[] arr) {
+        return arr[2] == 'b';
     }
 
-    private void showPrice(final String s) {
-        int priceBeginIdx = s.lastIndexOf(',') + 1;
-        int priceEndIdx   = s.length();
-        int price         = Utils.parseInt(s.substring(priceBeginIdx, priceEndIdx));
+    private void showPrice(final char[] arr) {
+        int priceBeginIdx = lastIndexOf(arr, arr.length - 1, 0, ',') + 1;
+
+        int price = Utils.parseInt(arr, priceBeginIdx, arr.length);
         print(prices.getPrice(price));
     }
 
@@ -155,25 +157,25 @@ public class Orders {
         }
     }
 
-    private void cancelOrder(final String s) {
-        int id = Utils.parseInt(s.substring(2));
+    private void cancelOrder(final char[] arr) {
+        int id = Utils.parseInt(arr, 2, arr.length);
         sellers.removeById(id);
         buyers.removeById(id);
     }
 
-    private void processOrder(final String s) {
-        int  endIdIdx  = s.indexOf(',', 2);
-        char orderType = s.charAt(endIdIdx + 1);
+    private void processOrder(final char[] arr) {
+        int  endIdIdx  = indexOf(arr, 2, arr.length, ',');
+        char orderType = arr[endIdIdx + 1];
 
         if (orderType == 's') {
-            sell(s, endIdIdx);
+            sell(arr, endIdIdx);
         } else {
-            buy(s, endIdIdx);
+            buy(arr, endIdIdx);
         }
     }
 
-    public void buy(final String s, final int endIdIdx) {
-        Buyer buyer = parse(s, endIdIdx, Ctor.BUYER);
+    public void buy(final char[] arr, final int endIdIdx) {
+        Buyer buyer = parse(arr, endIdIdx, Ctor.BUYER);
         buy(buyer);
         if (buyer.hasItems()) {
             buyers.add(buyer);
@@ -193,39 +195,45 @@ public class Orders {
     }
 
     public <T extends OrderEntry> T parse(
-            final String s,
+            final char[] arr,
             final int endIdIdx,
             Ctor ctor
     ) {
-
-        char[] arr = s.toCharArray();
-
         int len           = arr.length;
-        int beginIdIdx    = 2;
-        int endPriceIdx   = -1;
-        int beginPriceIdx = -1;
-        int endSizeIdx    = len;
-        int beginSizeIdx  = endPriceIdx + 1;
+        int beginPriceIdx = indexOf(arr, endIdIdx + 1, len, ',') + 1;
+        int endPriceIdx   = lastIndexOf(arr, len - 2, 0, ',');
 
-        for (int i = endIdIdx + 1; i < len; i++) {
-            if (arr[i] == ',') {
-                beginPriceIdx = i + 1;
-                break;
-            }
-        }
-
-        for (int i = len - 2; i > 0; i--) {
-            if (arr[i] == ',') {
-                endPriceIdx = i;
-                break;
-            }
-        }
+        int beginIdIdx   = 2;
+        int endSizeIdx   = len;
+        int beginSizeIdx = endPriceIdx + 1;
 
         int id    = Utils.parseInt(arr, beginIdIdx, endIdIdx);
         int price = Utils.parseInt(arr, beginPriceIdx, endPriceIdx);
         int size  = Utils.parseInt(arr, beginSizeIdx, endSizeIdx);
 
         return (T) ctor.create(id, size, price);
+    }
+
+    private int lastIndexOf(final char[] arr, final int start, final int end, final char ch) {
+        int idx = -1;
+        for (int i = start; i > end - 1; i--) {
+            if (arr[i] == ch) {
+                idx = i;
+                break;
+            }
+        }
+        return idx;
+    }
+
+    private int indexOf(final char[] arr, final int start, final int end, final char ch) {
+        int idx = -1;
+        for (int i = start; i < end; i++) {
+            if (arr[i] == ch) {
+                idx = i;
+                break;
+            }
+        }
+        return idx;
     }
 
 //    public <T extends OrderEntry> T parse(
@@ -261,8 +269,8 @@ public class Orders {
         abstract <T extends OrderEntry> T create(int id, int size, int price);
     }
 
-    public void sell(final String s, final int endIdIdx) {
-        Seller seller = parse(s, endIdIdx, Ctor.SELLER);
+    public void sell(final char[] arr, final int endIdIdx) {
+        Seller seller = parse(arr, endIdIdx, Ctor.SELLER);
         sell(seller);
 
         if (seller.hasItems()) {

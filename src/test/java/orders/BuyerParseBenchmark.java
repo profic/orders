@@ -56,7 +56,7 @@ public class BuyerParseBenchmark {
     @Benchmark
     public void plain() {
         Orders o = new Orders();
-        o.parse(s, idxSndComma, Orders.Ctor.BUYER);
+        o.parse(s.toCharArray(), idxSndComma, Orders.Ctor.BUYER);
     }
 
 }

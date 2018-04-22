@@ -150,9 +150,9 @@ public class OrderBenchmark {
         int  endIdIdx  = s.indexOf(',', 2);
         char orderType = s.charAt(endIdIdx + 1);
         if (orderType == 's') {
-            return o.parse(s, endIdIdx, Orders.Ctor.SELLER);
+            return o.parse(s.toCharArray(), endIdIdx, Orders.Ctor.SELLER);
         } else {
-            return o.parse(s, endIdIdx, Orders.Ctor.BUYER);
+            return o.parse(s.toCharArray(), endIdIdx, Orders.Ctor.BUYER);
         }
     }
 }
