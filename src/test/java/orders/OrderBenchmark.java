@@ -92,9 +92,6 @@ public class OrderBenchmark {
                 orderStrings.add(s);
             }
         }
-
-        System.out.println(orders.size());
-        System.out.println(orderStrings.size());
     }
 
 
@@ -130,12 +127,12 @@ public class OrderBenchmark {
     public void testParse() {
         Orders o = new Orders();
         for (String s : orderStrings) {
-            OrderEntry order = doParse(o, s);
-            process(order);
+            OrderEntry order = doParse2(o, s);
+//            process(order);
         }
     }
 
-    @Benchmark
+//    @Benchmark
     public void processParsed() {
         for (OrderEntry order : orders) {
             process(order);
@@ -143,7 +140,6 @@ public class OrderBenchmark {
     }
 
     private void process(final OrderEntry order) {
-        Orders o = OrderBenchmark.o;
         if (order instanceof Buyer) {
             o.buy((Buyer) order);
         } else {
@@ -158,6 +154,16 @@ public class OrderBenchmark {
             return o.parse(s, endIdIdx, Seller::new);
         } else {
             return o.parse(s, endIdIdx, Buyer::new);
+        }
+    }
+
+    private static OrderEntry doParse2(final Orders o, final String s) {
+        int  endIdIdx  = s.indexOf(',', 2);
+        char orderType = s.charAt(endIdIdx + 1);
+        if (orderType == 's') {
+            return o.parse2(s, endIdIdx, false);
+        } else {
+            return o.parse2(s, endIdIdx, true);
         }
     }
 }

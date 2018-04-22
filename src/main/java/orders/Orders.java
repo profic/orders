@@ -1,7 +1,6 @@
 package orders;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -196,7 +195,7 @@ public class Orders {
     public <T extends OrderEntry> T parse(
             final String s,
             final int endIdIdx,
-            final Function3<Integer, Integer, Integer, T> f
+            final Function3<T> f
     ) {
         int beginIdIdx    = 2;
         int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
@@ -209,6 +208,28 @@ public class Orders {
         int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
 
         return f.apply(id, size, price);
+    }
+
+    public <T extends OrderEntry> T parse2(
+            final String s,
+            final int endIdIdx,
+            final boolean buyer
+    ) {
+        int beginIdIdx    = 2;
+        int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
+        int endPriceIdx   = s.lastIndexOf(',', s.length() - 2); // todo: s.length() - 2 maybe superfluous
+        int endSizeIdx    = s.length();
+        int beginSizeIdx  = endPriceIdx + 1;
+
+        int id    = Utils.parseInt(s.substring(beginIdIdx, endIdIdx));
+        int price = Utils.parseInt(s.substring(beginPriceIdx, endPriceIdx));
+        int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
+
+        if (buyer) {
+            return (T) new Buyer(id, size, price);
+        } else {
+            return (T) new Seller(id, size, price);
+        }
     }
 
     public void sell(final String s, final int endIdIdx) {
