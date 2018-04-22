@@ -2,7 +2,6 @@ package orders;
 
 
 import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.results.format.ResultFormatType;
@@ -127,7 +126,7 @@ public class OrderBenchmark {
     public void testParse() {
         Orders o = new Orders();
         for (String s : orderStrings) {
-            OrderEntry order = doParse2(o, s);
+            OrderEntry order = doParse(o, s);
 //            process(order);
         }
     }
@@ -151,19 +150,20 @@ public class OrderBenchmark {
         int  endIdIdx  = s.indexOf(',', 2);
         char orderType = s.charAt(endIdIdx + 1);
         if (orderType == 's') {
-            return o.parse(s, endIdIdx, Seller::new);
+            return o.parse(s, endIdIdx, false);
         } else {
-            return o.parse(s, endIdIdx, Buyer::new);
+            return o.parse(s, endIdIdx, true);
         }
     }
+
 
     private static OrderEntry doParse2(final Orders o, final String s) {
         int  endIdIdx  = s.indexOf(',', 2);
         char orderType = s.charAt(endIdIdx + 1);
         if (orderType == 's') {
-            return o.parse2(s, endIdIdx, false);
+            return o.parse2(s, endIdIdx, Orders.Ctor.SELLER);
         } else {
-            return o.parse2(s, endIdIdx, true);
+            return o.parse2(s, endIdIdx, Orders.Ctor.BUYER);
         }
     }
 }

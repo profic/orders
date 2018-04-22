@@ -173,7 +173,7 @@ public class Orders {
     }
 
     public void buy(final String s, final int endIdIdx) {
-        Buyer buyer = parse(s, endIdIdx, Buyer::new);
+        Buyer buyer = parse(s, endIdIdx, true);
         buy(buyer);
         if (buyer.hasItems()) {
             buyers.add(buyer);
@@ -192,10 +192,10 @@ public class Orders {
         }
     }
 
-    public <T extends OrderEntry> T parse(
+    public <T extends OrderEntry> T parse2(
             final String s,
             final int endIdIdx,
-            final Function3<T> f
+            Ctor ctor
     ) {
         int beginIdIdx    = 2;
         int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
@@ -207,10 +207,25 @@ public class Orders {
         int price = Utils.parseInt(s.substring(beginPriceIdx, endPriceIdx));
         int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
 
-        return f.apply(id, size, price);
+        return (T) ctor.create(id, size, price);
     }
 
-    public <T extends OrderEntry> T parse2(
+    public enum Ctor {
+
+        BUYER {
+            @Override Buyer create(final int id, final int size, final int price) {
+                return new Buyer(id, size, price);
+            }
+        }, SELLER {
+            @Override Seller create(final int id, final int size, final int price) {
+                return new Seller(id, size, price);
+            }
+        };
+
+        abstract <T extends OrderEntry> T create(int id, int size, int price);
+    }
+
+    public <T extends OrderEntry> T parse(
             final String s,
             final int endIdIdx,
             final boolean buyer
@@ -233,7 +248,7 @@ public class Orders {
     }
 
     public void sell(final String s, final int endIdIdx) {
-        Seller seller = parse(s, endIdIdx, Seller::new);
+        Seller seller = parse(s, endIdIdx, false);
         sell(seller);
 
         if (seller.hasItems()) {
