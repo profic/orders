@@ -25,6 +25,17 @@ public class Utils {
         return -1 * num;
     }
 
+    // todo: need to be removed
+    public static int parseInt(final String s, int from, int to) {
+        int num = '0' - s.charAt(from);
+
+        int i = from + 1;
+        while (i < to) {
+            num = num * 10 + '0' - s.charAt(i++);
+        }
+        return -1 * num;
+    }
+
 
     public static int parseInt(final char[] arr, int from, int to) {
         int num = '0' - arr[from];

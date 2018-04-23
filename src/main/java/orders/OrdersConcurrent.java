@@ -37,35 +37,34 @@ public class OrdersConcurrent {
     }
 
     private void processLine(final String s) {
-        char[] arr   = s.toCharArray();
-        char   sType = arr[0];
-        if (sType == 'o') processOrder(arr);
-        else if (sType == 'c') cancelOrder(arr);
-        else if (sType == 'q') processQuery(arr);
+        char   sType = s.charAt(0);
+        if (sType == 'o') processOrder(s);
+        else if (sType == 'c') cancelOrder(s);
+        else if (sType == 'q') processQuery(s);
     }
 
-    private void processQuery(final char[] arr) {
-        if (isBuyerQuery(arr)) {
+    private void processQuery(final String s) {
+        if (isBuyerQuery(s)) {
             showPrice(buyers.first());
-        } else if (isSellerQuery(arr)) {
+        } else if (isSellerQuery(s)) {
             showPrice(sellers.first());
         } else {
-            showPrice(arr);
+            showPrice(s);
         }
     }
 
-    private boolean isSellerQuery(final char[] arr) {
-        return arr[3] == 'e';
+    private boolean isSellerQuery(final String s) {
+        return s.charAt(3) == 'e';
     }
 
-    private boolean isBuyerQuery(final char[] arr) {
-        return arr[2] == 'b';
+    private boolean isBuyerQuery(final String s) {
+        return s.charAt(2) == 'b';
     }
 
-    private void showPrice(final char[] arr) {
-        int priceBeginIdx = lastIndexOf(arr, arr.length - 1, 0, ',') + 1;
+    private void showPrice(final String s) {
+        int priceBeginIdx = s.lastIndexOf(',') + 1;
 
-        int price = Utils.parseInt(arr, priceBeginIdx, arr.length);
+        int price = Utils.parseInt(s, priceBeginIdx, s.length());
         print(prices.getPrice(price));
     }
 
@@ -78,8 +77,8 @@ public class OrdersConcurrent {
         }
     }
 
-    private void cancelOrder(final char[] arr) {
-        int id = Utils.parseInt(arr, 2, arr.length);
+    private void cancelOrder(final String s) {
+        int id = Utils.parseInt(s, 2, s.length());
         cancelOrder(id);
     }
 
@@ -88,19 +87,19 @@ public class OrdersConcurrent {
         buyers.removeById(id);
     }
 
-    private void processOrder(final char[] arr) {
-        int  endIdIdx  = indexOf(arr, 2, arr.length, ',');
-        char orderType = arr[endIdIdx + 1];
+    private void processOrder(final String s) {
+        int  endIdIdx  = s.indexOf(',', 2);
+        char orderType = s.charAt(endIdIdx + 1);
 
         if (orderType == 's') {
-            sell(arr, endIdIdx);
+            sell(s, endIdIdx);
         } else {
-            buy(arr, endIdIdx);
+            buy(s, endIdIdx);
         }
     }
 
-    public void buy(final char[] arr, final int endIdIdx) {
-        Buyer buyer = parse(arr, endIdIdx, Ctor.BUYER);
+    public void buy(final String s, final int endIdIdx) {
+        Buyer buyer = parse(s, endIdIdx, Ctor.BUYER);
         buy(buyer);
     }
 
@@ -121,49 +120,26 @@ public class OrdersConcurrent {
     }
 
     public <T extends OrderEntry> T parse(
-            final char[] arr,
+            final String s,
             final int endIdIdx,
             Ctor ctor
     ) {
-        int len           = arr.length;
-        int beginPriceIdx = indexOf(arr, endIdIdx + 1, len, ',') + 1;
-        int endPriceIdx   = lastIndexOf(arr, len - 2, 0, ',');
+        int len           = s.length();
+        int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
+        int endPriceIdx   = s.lastIndexOf(',', len - 2);
 
         int beginIdIdx   = 2;
         int endSizeIdx   = len;
         int beginSizeIdx = endPriceIdx + 1;
 
-        int id    = Utils.parseInt(arr, beginIdIdx, endIdIdx);
-        int price = Utils.parseInt(arr, beginPriceIdx, endPriceIdx);
-        int size  = Utils.parseInt(arr, beginSizeIdx, endSizeIdx);
+        int id    = Utils.parseInt(s, beginIdIdx, endIdIdx);
+        int price = Utils.parseInt(s, beginPriceIdx, endPriceIdx);
+        int size  = Utils.parseInt(s, beginSizeIdx, endSizeIdx);
 
         return (T) ctor.create(id, size, price);
     }
-
-    private int lastIndexOf(final char[] arr, final int start, final int end, final char ch) {
-        int idx = -1;
-        for (int i = start; i > end - 1; i--) {
-            if (arr[i] == ch) {
-                idx = i;
-                break;
-            }
-        }
-        return idx;
-    }
-
-    private int indexOf(final char[] arr, final int start, final int end, final char ch) {
-        int idx = -1;
-        for (int i = start; i < end; i++) {
-            if (arr[i] == ch) {
-                idx = i;
-                break;
-            }
-        }
-        return idx;
-    }
-
-    public void sell(final char[] arr, final int endIdIdx) {
-        Seller seller = parse(arr, endIdIdx, Ctor.SELLER);
+    public void sell(final String s, final int endIdIdx) {
+        Seller seller = parse(s, endIdIdx, Ctor.SELLER);
         sell(seller);
     }
 
@@ -191,6 +167,7 @@ public class OrdersConcurrent {
     }
 
     private void print(Object o) {
+        OrderBenchmark.l.add(o.toString());
         if (false == true) { // todo: remove
 //        if (true) {
             System.out.println(o);
@@ -231,7 +208,7 @@ public class OrdersConcurrent {
                 if (isCancelOrder(e)) {
                     cancelOrder((Integer) e);
                 } else if (isQuery(e)) {
-                    processQuery((char[]) e);
+                    processQuery((String) e);
                 } else if (e instanceof Buyer) {
                     buy((Buyer) e);
                 } else {
@@ -243,7 +220,7 @@ public class OrdersConcurrent {
     }
 
     private boolean isQuery(final Object e) {
-        return e.getClass() == char[].class;
+        return e.getClass() == String.class;
     }
 
     private boolean isCancelOrder(final Object e) {
@@ -272,26 +249,25 @@ public class OrdersConcurrent {
         });
     }
 
-    private <T extends OrderEntry> T processOrder2(final char[] arr) {
-        int  endIdIdx  = indexOf(arr, 2, arr.length, ',');
-        char orderType = arr[endIdIdx + 1];
+    private <T extends OrderEntry> T processOrder2(final String s) {
+        int  endIdIdx  = s.indexOf(',', 2);
+        char orderType = s.charAt(endIdIdx + 1);
         if (orderType == 's') {
-            return parse(arr, endIdIdx, Ctor.SELLER);
+            return parse(s, endIdIdx, Ctor.SELLER);
         } else {
-            return parse(arr, endIdIdx, Ctor.BUYER);
+            return parse(s, endIdIdx, Ctor.BUYER);
         }
     }
 
     private Object doParse(final String s) {
         Object res   = null;
-        char[] arr   = s.toCharArray();
-        char   sType = arr[0];
+        char   sType = s.charAt(0);
         if (sType == 'o') {
-            res = processOrder2(arr);
+            res = processOrder2(s);
         } else if (sType == 'c') {
-            res = Utils.parseInt(arr, 2, arr.length);
+            res = Utils.parseInt(s, 2, s.length());
         } else if (sType == 'q') {
-            res = arr;
+            res = s;
         }
 
         return res;

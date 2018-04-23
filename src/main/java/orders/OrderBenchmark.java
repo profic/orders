@@ -75,6 +75,13 @@ public class OrderBenchmark {
 //        checkEquality();
     }
 
+//    @Benchmark
+//    @BenchmarkMode(Mode.AverageTime)
+    public void multipleThreadReturnString() throws Exception {
+        new OrdersConcurrent().doWorkConcurrent(e);
+//        checkEquality();
+    }
+
     private static void checkEquality() {
         if (!l.equals(eq)) {
             throw new RuntimeException();
