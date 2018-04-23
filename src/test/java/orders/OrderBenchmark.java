@@ -446,10 +446,17 @@ public class OrderBenchmark {
     }
 
 
-        @Benchmark
+//        @Benchmark
 //    @BenchmarkMode(Mode.AverageTime)
     public void multipleThreadRefactored() throws Exception {
         OrdersConcurrentAbstractTransfer o = new OrdersConcurrentAbstractTransfer();
+        o.doWorkConcurrent(e);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void jcTools() throws Exception {
+        OrdersConcurrentJcTools o = new OrdersConcurrentJcTools();
         o.doWorkConcurrent(e);
     }
 
