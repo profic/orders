@@ -6,11 +6,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.Stream;
 
-public class Orders {
+public class OrdersConcurrent {
 
     private final int PRICES_COUNT = 10_000;
     private final int IDS_COUNT    = 1_000_000 + 1;
@@ -20,103 +23,18 @@ public class Orders {
     private final IContainer<Buyer>  buyers            = new HeapContainer<>(BUYERS_COMPARATOR, IDS_COUNT);
     private final IContainer<Seller> sellers           = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
 
+    static Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
+
     public static void main(String[] args) throws Exception {
-//        new Orders().doWorkSingleThread();
-//        new Orders().doWorkConcurrent();
-
-//        Path     path    = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
-//        String[] strings = Files.lines(path).toArray(String[]::new);
-//        new Orders().doWorkSingleThreadPrepared(strings);
-
-        new Orders().doWorkConcurrent2(10);
+        OrdersConcurrent o = new OrdersConcurrent();
+        o.doWorkConcurrent(Executors.newFixedThreadPool(2));
     }
 
-    private final    BlockingQueue<String> q    = new ArrayBlockingQueue<>(IDS_COUNT);
-    private volatile boolean               done = false;
-
-    public void doWorkSingleThread() throws IOException {
-        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
+    public void doWork() throws IOException {
         try (Stream<String> lines = Files.lines(path)) {
             lines.forEach(this::processLine);
         }
     }
-
-
-    public void doWorkSingleThreadPrepared() throws IOException {
-        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
-        try (Stream<String> lines = Files.lines(path)) {
-            doWorkSingleThreadPrepared(lines.toArray(String[]::new));
-        }
-    }
-
-    public void doWorkConcurrent() throws Exception {
-//        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
-        Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
-
-        new Thread(() -> {
-            try (Stream<String> lines = Files.lines(path)) {
-                lines.forEach(q::add);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                done = true;
-            }
-        }).start();
-        while (!done) {
-            while (!q.isEmpty()) {
-                processLine(q.take());
-            }
-        }
-    }
-
-
-    public void doWorkConcurrent2(final int chunks) throws Exception {
-//        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
-        Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
-
-        int arrSize = (int) Math.ceil((double) IDS_COUNT / chunks);
-
-        BlockingQueue<String[]> q = new ArrayBlockingQueue<>(chunks);
-
-        new Thread(() -> {
-            try (BufferedReader r = Files.newBufferedReader(path)) {
-                boolean _continue = true;
-                for (int i = 0; i < chunks && _continue; i++) {
-                    String[] buf = new String[arrSize];
-
-                    for (int j = 0; j < arrSize && _continue; j++) {
-                        String line = r.readLine();
-                        if (line != null) {
-                            buf[j] = line;
-                        } else {
-                            _continue = false;
-                        }
-                    }
-                    q.add(buf);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                done = true;
-            }
-        }).start();
-
-        while (!q.isEmpty() || !done) {
-            doWorkSingleThreadPrepared(q.take());
-        }
-    }
-
-
-    public void doWorkSingleThreadPrepared(String[] strings) {
-        for (String string : strings) {
-            if (string == null) {
-                break;
-            } else {
-                processLine(string);
-            }
-        }
-    }
-
 
     private void processLine(final String s) {
         char[] arr   = s.toCharArray();
@@ -162,6 +80,10 @@ public class Orders {
 
     private void cancelOrder(final char[] arr) {
         int id = Utils.parseInt(arr, 2, arr.length);
+        cancelOrder(id);
+    }
+
+    private void cancelOrder(final int id) {
         sellers.removeById(id);
         buyers.removeById(id);
     }
@@ -180,10 +102,6 @@ public class Orders {
     public void buy(final char[] arr, final int endIdIdx) {
         Buyer buyer = parse(arr, endIdIdx, Ctor.BUYER);
         buy(buyer);
-        if (buyer.hasItems()) {
-            buyers.add(buyer);
-            prices.increase(buyer.price(), buyer.size());
-        }
     }
 
     public void buy(final Buyer buyer) {
@@ -194,6 +112,11 @@ public class Orders {
                 sellers.removeFirst();
                 seller = sellers.first();
             }
+        }
+
+        if (buyer.hasItems()) {
+            buyers.add(buyer);
+            prices.increase(buyer.price(), buyer.size());
         }
     }
 
@@ -239,32 +162,9 @@ public class Orders {
         return idx;
     }
 
-//    public <T extends OrderEntry> T parse(
-//            final String s,
-//            final int endIdIdx,
-//            Ctor ctor
-//    ) {
-//        int beginIdIdx    = 2;
-//        int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
-//        int endPriceIdx   = s.lastIndexOf(',', s.length() - 2); // todo: s.length() - 2 maybe superfluous
-//        int endSizeIdx    = s.length();
-//        int beginSizeIdx  = endPriceIdx + 1;
-//
-//        int id    = Utils.parseInt(s.substring(beginIdIdx, endIdIdx));
-//        int price = Utils.parseInt(s.substring(beginPriceIdx, endPriceIdx));
-//        int size  = Utils.parseInt(s.substring(beginSizeIdx, endSizeIdx));
-//
-//        return (T) ctor.create(id, size, price);
-//    }
-
     public void sell(final char[] arr, final int endIdIdx) {
         Seller seller = parse(arr, endIdIdx, Ctor.SELLER);
         sell(seller);
-
-        if (seller.hasItems()) {
-            prices.increase(seller.price(), seller.size());
-            sellers.add(seller);
-        }
     }
 
     public void sell(final Seller seller) {
@@ -276,13 +176,18 @@ public class Orders {
                 buyer = buyers.first();
             }
         }
+
+        if (seller.hasItems()) {
+            prices.increase(seller.price(), seller.size());
+            sellers.add(seller);
+        }
     }
 
     private void buy(Buyer buyer, Seller seller, int decreasePrice) {
         prices.decrease(decreasePrice, Math.min(seller.size(), buyer.size()));
-        int oldSize = buyer.size();
+        int oldBuyerSize = buyer.size();
         buyer.decreaseSize(seller.size());
-        seller.decreaseSize(oldSize);
+        seller.decreaseSize(oldBuyerSize);
     }
 
     private void print(Object o) {
@@ -290,5 +195,122 @@ public class Orders {
 //        if (true) {
             System.out.println(o);
         }
+    }
+
+
+    private static final String END       = "END";
+    private static final Object PARSE_END = new Object();
+
+    private final AtomicReferenceArray<String> readArr   = new AtomicReferenceArray<>(IDS_COUNT + 1);
+    private final AtomicReferenceArray<Object> parsedArr = new AtomicReferenceArray<>(IDS_COUNT + 1);
+
+    ExecutorService e = null;
+
+    public void doWorkConcurrent(ExecutorService e) throws Exception {
+        this.e = e;
+        CountDownLatch readLatch  = new CountDownLatch(1);
+        CountDownLatch parseLatch = new CountDownLatch(1);
+
+        Future<?>      readFuture  = read(readLatch);
+        Future<Object> parseFuture = parse(readLatch, parseLatch);
+        process(parseLatch);
+
+        readFuture.get();
+        parseFuture.get();
+    }
+
+    private void process(final CountDownLatch parseLatch) throws Exception {
+        parseLatch.await();
+        int pos = 0;
+        while (PARSE_END != parsedArr.get(pos)) {
+            Object e;
+            while ((e = parsedArr.get(pos)) != null) {
+                if (PARSE_END == e) {
+                    break;
+                }
+                if (isCancelOrder(e)) {
+                    cancelOrder((Integer) e);
+                } else if (isQuery(e)) {
+                    processQuery((char[]) e);
+                } else if (e instanceof Buyer) {
+                    buy((Buyer) e);
+                } else {
+                    sell((Seller) e);
+                }
+                pos++;
+            }
+        }
+    }
+
+    private boolean isQuery(final Object e) {
+        return e.getClass() == char[].class;
+    }
+
+    private boolean isCancelOrder(final Object e) {
+        return e.getClass() == Integer.class;
+    }
+
+    private Future<Object> parse(
+            final CountDownLatch readLatch,
+            final CountDownLatch parseLatch) {
+        return e.submit(() -> {
+            readLatch.await();
+            parseLatch.countDown();
+            int pos = 0;
+            while (!END.equals(readArr.get(pos))) {
+                String s;
+                while ((s = readArr.get(pos)) != null) {
+                    if (END.equals(s)) {
+                        break;
+                    }
+                    parsedArr.set(pos, doParse(s));
+                    pos++;
+                }
+            }
+            parsedArr.set(pos, PARSE_END);
+            return null;
+        });
+    }
+
+    private <T extends OrderEntry> T processOrder2(final char[] arr) {
+        int  endIdIdx  = indexOf(arr, 2, arr.length, ',');
+        char orderType = arr[endIdIdx + 1];
+        if (orderType == 's') {
+            return parse(arr, endIdIdx, Ctor.SELLER);
+        } else {
+            return parse(arr, endIdIdx, Ctor.BUYER);
+        }
+    }
+
+    private Object doParse(final String s) {
+        Object res   = null;
+        char[] arr   = s.toCharArray();
+        char   sType = arr[0];
+        if (sType == 'o') {
+            res = processOrder2(arr);
+        } else if (sType == 'c') {
+            res = Utils.parseInt(arr, 2, arr.length);
+        } else if (sType == 'q') {
+            res = arr;
+        }
+
+        return res;
+    }
+
+    private Future<?> read(final CountDownLatch readLatch) {
+        return e.submit(() -> {
+            readLatch.countDown();
+            int pos = 0;
+            try (BufferedReader b = Files.newBufferedReader(path)) {
+                String line;
+                while ((line = b.readLine()) != null) {
+                    readArr.set(pos++, line);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                readArr.set(pos, END);
+            }
+        });
     }
 }
