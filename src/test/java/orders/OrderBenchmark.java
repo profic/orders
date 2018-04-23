@@ -85,8 +85,8 @@ public class OrderBenchmark {
     private static List<String>     orderStrings = new ArrayList<>();
 
     static {
-//        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
-        Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
+        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
+//        Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
         try (Stream<String> lines = Files.lines(path)) {
             strings = lines.toArray(String[]::new);
         } catch (IOException e) {
@@ -245,8 +245,8 @@ public class OrderBenchmark {
         parseFuture.get();
     }
 
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
+//    @Benchmark
+//    @BenchmarkMode(Mode.AverageTime)
     public void readFileAndParseConcurrentArrayBased() throws Exception {
 //        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
         doWork();
@@ -439,10 +439,18 @@ public class OrderBenchmark {
     }
 
 
-    //    @Benchmark
+//        @Benchmark
 //    @BenchmarkMode(Mode.AverageTime)
     public void multipleThread() throws Exception {
         new OrdersConcurrent().doWorkConcurrent(e);
+    }
+
+
+        @Benchmark
+//    @BenchmarkMode(Mode.AverageTime)
+    public void multipleThreadRefactored() throws Exception {
+        OrdersConcurrentAbstractTransfer o = new OrdersConcurrentAbstractTransfer();
+        o.doWorkConcurrent(e);
     }
 
     public static List<String> l = new ArrayList<>(1_000_000);

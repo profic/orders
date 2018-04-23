@@ -23,7 +23,8 @@ public class OrdersConcurrent {
     private final IContainer<Buyer>  buyers            = new HeapContainer<>(BUYERS_COMPARATOR, IDS_COUNT);
     private final IContainer<Seller> sellers           = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
 
-    static Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
+//    static Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
+    static Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
 
     public static void main(String[] args) throws Exception {
         OrdersConcurrent o = new OrdersConcurrent();

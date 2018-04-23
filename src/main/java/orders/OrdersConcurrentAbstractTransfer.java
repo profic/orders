@@ -1,5 +1,7 @@
 package orders;
 
+import javafx.util.Pair;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +15,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.Stream;
 
+import static orders.Utils.toCallable;
+
 @SuppressWarnings("Duplicates")
 public class OrdersConcurrentAbstractTransfer {
 
@@ -24,11 +28,14 @@ public class OrdersConcurrentAbstractTransfer {
     private final IContainer<Buyer>  buyers            = new HeapContainer<>(BUYERS_COMPARATOR, IDS_COUNT);
     private final IContainer<Seller> sellers           = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
 
-    static Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
+    private final AtomicReferenceArray<String> readArr = new AtomicReferenceArray<>(IDS_COUNT + 1);
+
+    //    static Path path = Paths.get("c:\\Users\\Uladzislau_Malchanau\\Desktop", "data2.txt");
+    static Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
 
     public static void main(String[] args) throws Exception {
         OrdersConcurrentAbstractTransfer o = new OrdersConcurrentAbstractTransfer();
-        o.doWorkConcurrent(Executors.newFixedThreadPool(2));
+        o.doWorkConcurrent(Executors.newFixedThreadPool(3));
     }
 
     public void doWork() throws IOException {
@@ -179,19 +186,7 @@ public class OrdersConcurrentAbstractTransfer {
     private static final String END       = "END";
     private static final Object PARSE_END = new Object();
 
-    private final AtomicReferenceArray<String> readArr   = new AtomicReferenceArray<>(IDS_COUNT + 1);
-    private final AtomicReferenceArray<Object> parsedArr = new AtomicReferenceArray<>(IDS_COUNT + 1);
-
-    static class ArrWrapper<T> {
-        private final AtomicReferenceArray<String> arr;
-        private       int                          pos;
-
-        public ArrWrapper(int size) {
-            arr = new AtomicReferenceArray<>(size);
-        }
-
-
-    }
+    private AtomicReferenceArray<Object> parsedArr;
 
 
     ExecutorService e = null;
@@ -201,34 +196,36 @@ public class OrdersConcurrentAbstractTransfer {
         CountDownLatch readLatch  = new CountDownLatch(1);
         CountDownLatch parseLatch = new CountDownLatch(1);
 
-        Future<?>      readFuture  = read(readLatch);
-        Future<Object> parseFuture = parse(readLatch, parseLatch);
-        process(parseLatch);
+//        Future<?>      readFuture  = read(readLatch);
+        Pair<Future<?>, AtomicReferenceArray<String>> readRes = read(readLatch);
+
+        Future<?> readFuture    = readRes.getKey();
+        Future<?> parseFuture   = parse(readLatch, parseLatch, readRes.getValue());
+        Future<?> processFuture = process(parseLatch);
 
         readFuture.get();
         parseFuture.get();
+        processFuture.get();
     }
 
-    private void process(final CountDownLatch parseLatch) throws Exception {
-        parseLatch.await();
-        int pos = 0;
-        while (PARSE_END != parsedArr.get(pos)) {
-            Object e;
-            while ((e = parsedArr.get(pos)) != null) {
-                if (PARSE_END == e) {
-                    break;
-                } else if (isCancelOrder(e)) {
-                    cancelOrder((Integer) e);
-                } else if (isQuery(e)) {
-                    processQuery((String) e);
-                } else if (e instanceof Buyer) {
-                    buy((Buyer) e);
-                } else {
-                    sell((Seller) e);
-                }
-                pos++;
-            }
-        }
+    private Future<?> process(final CountDownLatch parseLatch) {
+
+        InAction<Object> processAction = new InAction<>(PARSE_END, e);
+        return processAction.run(
+                parsedArr::get,
+                (pos, e1) -> {
+                    if (isCancelOrder(e1)) {
+                        cancelOrder((Integer) e1);
+                    } else if (isQuery(e1)) {
+                        processQuery((String) e1);
+                    } else if (e1 instanceof Buyer) {
+                        buy((Buyer) e1);
+                    } else {
+                        sell((Seller) e1);
+                    }
+                },
+                toCallable(parseLatch::await)
+        );
     }
 
     private boolean isQuery(final Object e) {
@@ -239,80 +236,21 @@ public class OrdersConcurrentAbstractTransfer {
         return e.getClass() == Integer.class;
     }
 
-    private Future<Object> parse(
+    private Future<?> parse(
             final CountDownLatch readLatch,
-            final CountDownLatch parseLatch) {
+            final CountDownLatch parseLatch, final AtomicReferenceArray<String> readArr) {
 
-        return e.submit(() -> {
-            readLatch.await();
-            parseLatch.countDown();
-            int pos = 0;
-            while (!END.equals(readArr.get(pos))) {
-                String s;
-                while ((s = readArr.get(pos)) != null) {
-                    if (END.equals(s)) {
-                        break;
-                    } else {
-                        parsedArr.set(pos, doParse(s));
-                        pos++;
-                    }
-                }
-            }
-            parsedArr.set(pos, PARSE_END);
-            return null;
-        });
+        Action<String, Object> parseAction = new Action<>(readArr, IDS_COUNT + 1, END, PARSE_END, e);
 
-//        return e.submit(() -> {
-//            readLatch.await();
-//            parseLatch.countDown();
-//            int pos = 0;
-//            while (!END.equals(readArr.get(pos))) {
-//                String s;
-//                while ((s = readArr.get(pos)) != null) {
-//                    if (END.equals(s)) {
-//                        break;
-//                    } else {
-//                        parsedArr.set(pos, doParse(s));
-//                        pos++;
-//                    }
-//                }
-//            }
-//            parsedArr.set(pos, PARSE_END);
-//            return null;
-//        });
-    }
+        parsedArr = parseAction.getOutArr();
 
-    interface Source<T> {
-        T get();
-    }
-
-    interface Sink<T> {
-        void transfer(T o);
-    }
-
-    static class Act<In, Out> {
-        final In  inPoisonPill;
-        final Out outPoisonPill;
-
-        Act(final In inPoisonPill, final Out outPoisonPill) {
-            this.inPoisonPill = inPoisonPill;
-            this.outPoisonPill = outPoisonPill;
-        }
-
-        void run() {
-            while (!inPoisonPill.equals(readArr.get(pos))) {
-                String s;
-                while ((s = readArr.get(pos)) != null) {
-                    if (inPoisonPill.equals(s)) {
-                        break;
-                    } else {
-                        parsedArr.set(pos, doParse(s));
-                        pos++;
-                    }
-                }
-            }
-            parsedArr.set(pos, outPoisonPill);
-        }
+        return parseAction.run(
+                this::doParse,
+                toCallable(() -> {
+                    readLatch.await();
+                    parseLatch.countDown();
+                })
+        );
     }
 
     private <T extends OrderEntry> T processOrder2(final String s) {
@@ -339,10 +277,8 @@ public class OrdersConcurrentAbstractTransfer {
         return res;
     }
 
-    private Future<?> read(final CountDownLatch readLatch) {
-
-
-        return e.submit(() -> {
+    private Pair<Future<?>, AtomicReferenceArray<String>> read(final CountDownLatch readLatch) {
+        return new Pair<>(e.submit(() -> {
             readLatch.countDown();
             int pos = 0;
             try (BufferedReader b = Files.newBufferedReader(path)) {
@@ -355,6 +291,6 @@ public class OrdersConcurrentAbstractTransfer {
             } finally {
                 readArr.set(pos, END);
             }
-        });
+        }), readArr);
     }
 }
