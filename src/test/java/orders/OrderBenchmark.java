@@ -245,8 +245,8 @@ public class OrderBenchmark {
         parseFuture.get();
     }
 
-    //    @Benchmark
-//    @BenchmarkMode(Mode.AverageTime)
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
     public void readFileAndParseConcurrentArrayBased() throws Exception {
 //        Path path = Paths.get("C:\\Users\\Влад\\Desktop", "data2.txt");
         doWork();
@@ -368,7 +368,7 @@ public class OrderBenchmark {
     }
 
 
-    //    @Benchmark
+//    @Benchmark
 //    @BenchmarkMode(Mode.AverageTime)
     public void extract() throws Exception {
         doExtract();
@@ -386,7 +386,7 @@ public class OrderBenchmark {
         CountDownLatch readLatch  = new CountDownLatch(1);
         CountDownLatch parseLatch = new CountDownLatch(1);
 
-        InAction<String> readAction = new InAction<>(END);
+        InAction<String> readAction = new InAction<>(END, e);
 
         BufferedReader b = Files.newBufferedReader(path);
         Future<?> readFuture = readAction.run(
@@ -403,14 +403,14 @@ public class OrderBenchmark {
                         throw new RuntimeException(e1);
                     }
                 }, readArr::set,
-                toCallable(readLatch::countDown)
+                Utils.toCallable(readLatch::countDown)
         );
 
-        Action<String, OrderEntry> parseAction = new Action<>(readArr, oneMillion, END, ORDER_END);
+        Action<String, OrderEntry> parseAction = new Action<>(readArr, oneMillion, END, ORDER_END, e);
 
         Future<?> parseFuture = parseAction.run(
                 s -> doParse(o, s),
-                toCallable(() -> {
+                Utils.toCallable(() -> {
                     readLatch.await();
                     parseLatch.countDown();
                 })
@@ -418,11 +418,11 @@ public class OrderBenchmark {
 
         AtomicReferenceArray<OrderEntry> parsedArr = parseAction.getOutArr();
 
-        InAction<OrderEntry> processAction = new InAction<>(ORDER_END);
+        InAction<OrderEntry> processAction = new InAction<>(ORDER_END, e);
         Future<?> processFuture = processAction.run(
                 parsedArr::get,
                 (pos, in2) -> process(in2, o),
-                toCallable(parseLatch::await)
+                Utils.toCallable(parseLatch::await)
         );
 
         readFuture.get();
@@ -432,26 +432,14 @@ public class OrderBenchmark {
         processFuture.get();
     }
 
-    @FunctionalInterface
-    interface UnsafeRunnable {
-        void run() throws Exception;
-    }
-
-    static Callable<Void> toCallable(UnsafeRunnable runnable) {
-        return () -> {
-            runnable.run();
-            return null;
-        };
-    }
-
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
+    //    @Benchmark
+//    @BenchmarkMode(Mode.AverageTime)
     public void singleThread() throws Exception {
         new OrdersConcurrent().doWork();
     }
 
 
-//    @Benchmark
+    //    @Benchmark
 //    @BenchmarkMode(Mode.AverageTime)
     public void multipleThread() throws Exception {
         new OrdersConcurrent().doWorkConcurrent(e);

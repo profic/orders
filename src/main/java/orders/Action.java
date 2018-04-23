@@ -1,6 +1,7 @@
 package orders;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Function;
@@ -16,16 +17,18 @@ public class Action<In, Out> {
     private final AtomicReferenceArray<Out> outArr;
     private final In                        inPoisonPill;
     private final Out                       outPoisonPill;
+    private final ExecutorService           e;
 
-    public Action(final AtomicReferenceArray<In> inArr, final int size, In inPoisonPill, Out outPoisonPill) {
+    public Action(final AtomicReferenceArray<In> inArr, final int size, In inPoisonPill, Out outPoisonPill, ExecutorService e) {
         this.inArr = inArr;
         this.outArr = new AtomicReferenceArray<>(size);
         this.inPoisonPill = inPoisonPill;
         this.outPoisonPill = outPoisonPill;
+        this.e = e;
     }
 
     public Future<?> run(final Function<In, Out> function, Callable<Void> beforeRun) {
-        return OrderBenchmark.e.submit(() -> {
+        return e.submit(() -> {
 //            System.out.println("ACTION RUN");
             beforeRun.call();
             int pos = 0;
@@ -51,13 +54,15 @@ public class Action<In, Out> {
 
 class InAction<In> {
     private final In inPoisonPill;
+    private ExecutorService e;
 
-    public InAction(In inPoisonPill) {
+    public InAction(In inPoisonPill, ExecutorService e) {
         this.inPoisonPill = inPoisonPill;
+        this.e = e;
     }
 
     public Future<?> run(IntFunction<In> inExtractor, IntF2<In> outConsumer, Callable<Void> beforeRun) {
-        return OrderBenchmark.e.submit(() -> {
+        return e.submit(() -> {
 //            System.out.println("IN CATION RUN");
             beforeRun.call();
             int pos = 0;

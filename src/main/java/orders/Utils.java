@@ -1,5 +1,7 @@
 package orders;
 
+import java.util.concurrent.Callable;
+
 public class Utils {
 
     private Utils() {
@@ -45,5 +47,12 @@ public class Utils {
             num = num * 10 + '0' - arr[i++];
         }
         return -1 * num;
+    }
+
+    public static Callable<Void> toCallable(UnsafeRunnable runnable) {
+        return () -> {
+            runnable.run();
+            return null;
+        };
     }
 }
