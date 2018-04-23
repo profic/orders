@@ -167,7 +167,6 @@ public class OrdersConcurrent {
     }
 
     private void print(Object o) {
-        OrderBenchmark.l.add(o.toString());
         if (false == true) { // todo: remove
 //        if (true) {
             System.out.println(o);
