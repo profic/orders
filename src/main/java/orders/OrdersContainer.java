@@ -1,6 +1,6 @@
 package orders;
 
-public interface OrdersContainer<T extends OrderEntry> {
+public interface OrdersContainer<T extends OrderActor> {
     void add(T el);
 
     void removeFirst();

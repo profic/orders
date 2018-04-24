@@ -21,7 +21,7 @@ public class QueryCommand implements Runnable{
         print(prices.getPrice(price));
     }
 
-    private void showPrice(OrderEntry entry) {
+    private void showPrice(OrderActor entry) {
         if (entry == null) {
             print("empty");
         } else {

@@ -16,7 +16,6 @@ public class CommandFactory {
         this.sellers = sellers;
     }
 
-    @SuppressWarnings("Duplicates")
     public Runnable createCommand(Object e) {
         Runnable command;
         if (isCancelOrder(e)) {
@@ -24,7 +23,11 @@ public class CommandFactory {
         } else if (isQuery(e)) {
             command = new QueryCommand(buyers, sellers, (String) e, prices);
         } else {
-            command = new OrderCommand(buyers, sellers, (OrderEntry) e, prices);
+            try {
+                command = new OrderCommand(buyers, sellers, (OrderActor) e, prices);
+            } catch (Exception e1) {
+                throw new RuntimeException();
+            }
         }
         return command;
     }

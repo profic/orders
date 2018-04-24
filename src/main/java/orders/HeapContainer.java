@@ -2,7 +2,7 @@ package orders;
 
 import java.util.Comparator;
 
-public class HeapContainer<T extends OrderEntry> implements OrdersContainer<T> {
+public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
     private final OrdersHeap<T> heap;
 
     public HeapContainer(Comparator<T> cmp, int capacity) {

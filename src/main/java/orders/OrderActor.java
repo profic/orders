@@ -1,12 +1,12 @@
 package orders;
 
-public abstract class OrderEntry {
+public abstract class OrderActor {
     private final int id;
     private final int price;
 
     private int size;
 
-    public OrderEntry(final int id, final int size, final int price) {
+    public OrderActor(final int id, final int size, final int price) {
         this.id = id;
         this.size = size;
         this.price = price;
@@ -39,8 +39,8 @@ public abstract class OrderEntry {
     @Override public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        OrderEntry orderEntry = (OrderEntry) o;
-        return id == orderEntry.id;
+        OrderActor orderActor = (OrderActor) o;
+        return id == orderActor.id;
     }
 
     @Override public int hashCode() {

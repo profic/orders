@@ -21,4 +21,14 @@ public class Utils {
         }
         return -1 * num;
     }
+
+    public static Runnable checkedRunnable(CheckedRunnable delegate) {
+        return () -> {
+            try {
+                delegate.run();
+            } catch (Exception e) {
+                throw new RuntimeException();
+            }
+        };
+    }
 }

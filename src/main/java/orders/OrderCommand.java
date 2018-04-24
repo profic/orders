@@ -4,10 +4,14 @@ public class OrderCommand implements Runnable {
 
     private final OrdersContainer<Buyer>  buyers;
     private final OrdersContainer<Seller> sellers;
-    private final OrderEntry              order;
+    private final OrderActor              order;
     private final Prices                  prices;
 
-    public OrderCommand(final OrdersContainer<Buyer> buyers, final OrdersContainer<Seller> sellers, final OrderEntry order, final Prices prices) {
+    public OrderCommand(
+            final OrdersContainer<Buyer> buyers,
+            final OrdersContainer<Seller> sellers,
+            final OrderActor order,
+            final Prices prices) {
         this.buyers = buyers;
         this.sellers = sellers;
         this.order = order;
@@ -16,7 +20,7 @@ public class OrderCommand implements Runnable {
 
     @Override
     public void run() {
-        OrderEntry order = this.order;
+        OrderActor order = this.order;
         if (order instanceof Buyer) {
             buy((Buyer) order);
         } else {

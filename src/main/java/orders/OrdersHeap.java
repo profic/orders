@@ -2,7 +2,7 @@ package orders;
 
 import java.util.Comparator;
 
-public class OrdersHeap<E extends OrderEntry> {
+public class OrdersHeap<E extends OrderActor> {
 
     private final Comparator<E> cmp;
     private final Object[]      queue;
