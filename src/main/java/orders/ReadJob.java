@@ -11,11 +11,12 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class ReadJob {
 
-    public static final String END = "END";
+    public static final String   END       = "END";
+    public static final String[] EMPTY_ARR = new String[0];
 
-    private final AtomicReferenceArray<String> readArr;
-    private final Path                         path;
-    private final ExecutorService              executor;
+    private final AtomicReferenceArray<String[]> readArr;
+    private final Path                           path;
+    private final ExecutorService                executor;
 
     public ReadJob(int size, final Path path, final ExecutorService executor) {
         readArr = new AtomicReferenceArray<>(size);
@@ -28,19 +29,31 @@ public class ReadJob {
             beforeExecution.run();
             int pos = 0;
             try (BufferedReader b = Files.newBufferedReader(path)) {
-                String line;
-                while ((line = b.readLine()) != null) {
-                    readArr.set(pos++, line);
+
+                boolean run = true;
+                while (run) {
+                    String[] buf = new String[OrdersProcessor.BUF_SIZE];
+                    for (int i = 0; i < buf.length; i++) {
+                        String line = b.readLine();
+                        if (line == null) {
+                            run = false;
+                            break;
+                        } else {
+                            buf[i] = line;
+                        }
+                    }
+                    readArr.set(pos++, buf);
                 }
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } finally {
-                readArr.set(pos, END);
+                readArr.set(pos, EMPTY_ARR);
             }
         });
     }
 
-    public AtomicReferenceArray<String> getReadArr() {
+    public AtomicReferenceArray<String[]> getReadArr() {
         return readArr;
     }
 }

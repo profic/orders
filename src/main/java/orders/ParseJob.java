@@ -6,31 +6,39 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class ParseJob {
 
-    public static final Object PARSE_END = new Object();
+    public static final Object[] PARSE_END = new Object[0];
 
-    private final ExecutorService              executor;
-    private final AtomicReferenceArray<Object> parsedArr;
+    private final ExecutorService                executor;
+    private final AtomicReferenceArray<Object[]> parsedArr;
 
-    public ParseJob(final ExecutorService executor, final int size) {
+    public ParseJob(final ExecutorService executor) {
         this.executor = executor;
-        this.parsedArr = new AtomicReferenceArray<>(size);
+        this.parsedArr = new AtomicReferenceArray<>(OrdersProcessor.CHUNK_CNT);
     }
 
 
-    public Future<Object> parse(Runnable beforeRun, final AtomicReferenceArray<String> readArr) {
+    public Future<Object> parse(Runnable beforeRun, final AtomicReferenceArray<String[]> readArr) {
         return executor.submit(() -> {
             beforeRun.run();
-            int                          position  = 0;
-            boolean                      run       = true;
-            AtomicReferenceArray<Object> parsedArr = this.parsedArr;
+            int                            position  = 0;
+            boolean                        run       = true;
+            AtomicReferenceArray<Object[]> parsedArr = this.parsedArr;
             while (run) {
-                String s;
-                while ((s = readArr.get(position)) != null) {
-                    if (ReadJob.END.equals(s)) {
-                        run = false;
+                String[] buf;
+                while ((buf = readArr.get(position)) != null) {
+                    if (ReadJob.EMPTY_ARR == buf) {
                         break;
                     }
-                    parsedArr.set(position, doParse(s));
+                    Object[] outBuf = new Object[OrdersProcessor.BUF_SIZE];
+                    for (int i = 0; i < buf.length; i++) {
+                        String s = buf[i];
+                        if (ReadJob.END.equals(s)) {
+                            run = false;
+                            break;
+                        }
+                        outBuf[i] = doParse(s);
+                    }
+                    parsedArr.set(position, outBuf);
                     position++;
                 }
                 Thread.yield();
@@ -84,7 +92,7 @@ public class ParseJob {
         return (T) ctor.create(id, size, price);
     }
 
-    public AtomicReferenceArray<Object> getParsedArr() {
+    public AtomicReferenceArray<Object[]> getParsedArr() {
         return parsedArr;
     }
 }

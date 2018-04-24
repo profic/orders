@@ -13,8 +13,10 @@ import static orders.Utils.checkedRunnable;
 
 public class OrdersProcessor {
 
+    public static final  int CHUNK_CNT    = 10;
     private static final int PRICES_COUNT = 10_000;
     private static final int IDS_COUNT    = 1_000_000 + 1;
+    public static final  int BUF_SIZE     = (int) Math.ceil(OrdersProcessor.IDS_COUNT / OrdersProcessor.CHUNK_CNT) + 1;
 
     private final Comparator<Buyer> BUYERS_COMPARATOR = Comparator.comparingInt(Buyer::price).reversed();
 
@@ -50,7 +52,7 @@ public class OrdersProcessor {
         CountDownLatch parseLatch = new CountDownLatch(1);
 
         ReadJob  readJob  = new ReadJob(IDS_COUNT + 1, path, executor);
-        ParseJob parseJob = new ParseJob(executor, IDS_COUNT + 1);
+        ParseJob parseJob = new ParseJob(executor);
 
         Future<?> readFuture = readJob.read(readLatch::countDown);
         Future<Object> parseFuture = parseJob.parse(checkedRunnable(() -> {
@@ -64,18 +66,20 @@ public class OrdersProcessor {
         parseFuture.get();
     }
 
-    private void process(final CountDownLatch parseLatch, final AtomicReferenceArray<Object> parsedArr) throws Exception {
+    private void process(final CountDownLatch parseLatch, final AtomicReferenceArray<Object[]> parsedArr) throws Exception {
         parseLatch.await();
         int     position = 0;
         boolean run      = true;
         while (run) {
-            Object e;
-            while ((e = parsedArr.get(position)) != null) {
-                if (ParseJob.PARSE_END == e) {
+            Object[] buf;
+            while ((buf = parsedArr.get(position)) != null) {
+                if (ParseJob.PARSE_END == buf) {
                     run = false;
                     break;
                 }
-                factory.createCommand(e).run();
+                for (Object o : buf) {
+                    factory.createCommand(o).run();
+                }
                 position++;
             }
             Thread.yield();
