@@ -18,8 +18,8 @@ public class ReadJob {
     private final Path                           path;
     private final ExecutorService                executor;
 
-    public ReadJob(int size, final Path path, final ExecutorService executor) {
-        readArr = new AtomicReferenceArray<>(size);
+    public ReadJob(final Path path, final ExecutorService executor) {
+        readArr = new AtomicReferenceArray<>(OrdersProcessor.CHUNK_CNT + 1);
         this.path = path;
         this.executor = executor;
     }

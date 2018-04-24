@@ -13,7 +13,7 @@ public class ParseJob {
 
     public ParseJob(final ExecutorService executor) {
         this.executor = executor;
-        this.parsedArr = new AtomicReferenceArray<>(OrdersProcessor.CHUNK_CNT);
+        this.parsedArr = new AtomicReferenceArray<>(OrdersProcessor.CHUNK_CNT + 1);
     }
 
 
@@ -23,7 +23,6 @@ public class ParseJob {
             int                            position  = 0;
             boolean                        run       = true;
             AtomicReferenceArray<Object[]> parsedArr = this.parsedArr;
-            long spins = 0;
             while (run) {
                 String[] buf;
                 while ((buf = readArr.get(position)) != null) {
@@ -43,11 +42,9 @@ public class ParseJob {
                     parsedArr.set(position, outBuf);
                     position++;
                 }
-                spins++;
                 Thread.yield();
             }
-            parsedArr.set(position - 1, PARSE_END);
-            System.out.println("spins = " + spins);
+            parsedArr.set(position, PARSE_END);
             return null;
         });
     }

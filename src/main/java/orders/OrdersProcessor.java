@@ -13,7 +13,7 @@ import static orders.Utils.checkedRunnable;
 
 public class OrdersProcessor {
 
-    public static final  int CHUNK_CNT    = 3;
+    public static final  int CHUNK_CNT    = 10;
     private static final int PRICES_COUNT = 10_000;
     private static final int IDS_COUNT    = 1_000_000 + 1;
     public static final  int BUF_SIZE     = (int) Math.ceil(OrdersProcessor.IDS_COUNT / OrdersProcessor.CHUNK_CNT) + 1;
@@ -51,7 +51,7 @@ public class OrdersProcessor {
         CountDownLatch readLatch  = new CountDownLatch(1);
         CountDownLatch parseLatch = new CountDownLatch(1);
 
-        ReadJob  readJob  = new ReadJob(IDS_COUNT + 1, path, executor);
+        ReadJob  readJob  = new ReadJob(path, executor);
         ParseJob parseJob = new ParseJob(executor);
 
         Future<?> readFuture = readJob.read(readLatch::countDown);
@@ -70,7 +70,6 @@ public class OrdersProcessor {
         parseLatch.await();
         int     position = 0;
         boolean run      = true;
-        long spins = 0;
         while (run) {
             Object[] buf;
             while ((buf = parsedArr.get(position)) != null) {
@@ -88,9 +87,7 @@ public class OrdersProcessor {
                 }
                 position++;
             }
-            spins++;
             Thread.yield();
         }
-        System.out.println("spins = " + spins);
     }
 }
