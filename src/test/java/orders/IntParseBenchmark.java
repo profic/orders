@@ -17,29 +17,24 @@ public class IntParseBenchmark {
                 .include(IntParseBenchmark.class.getSimpleName())
                 .forks(1)
                 .threads(1)
-                .warmupIterations(20)
+                .warmupIterations(5)
                 .measurementIterations(5)
-//                .warmupIterations(5)
-//                .measurementIterations(5)
                 .build();
         new Runner(opt).run();
     }
 
-    //    @Param({"2", "3", "4", "5", "6"})
-    @Param("6")
+    @Param({"2", "3", "4", "5", "6"})
     int idLen;
-    String s;
-    Random r = new Random();
+    private String s;
+    private Random r = new Random();
 
-    ImmutableMap<Integer, Integer> m = ImmutableMap.of(
+    private ImmutableMap<Integer, Integer> m = ImmutableMap.of(
             2, 99,
             3, 999,
             4, 9999,
             5, 99999,
             6, 999999
     );
-
-    //    @Setup(Level.Invocation)
 
     @Setup(Level.Iteration)
     public void setup() {
@@ -48,7 +43,7 @@ public class IntParseBenchmark {
 
     @Benchmark
     public void manual() {
-        Utils.parseInt(s);
+        Utils.parseInt(s, 0, s.length());
     }
 
     @Benchmark

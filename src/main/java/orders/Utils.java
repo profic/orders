@@ -1,7 +1,5 @@
 package orders;
 
-import java.util.concurrent.Callable;
-
 public class Utils {
 
     private Utils() {
@@ -14,20 +12,6 @@ public class Utils {
      * @param s positive decimal integer in string representation
      * @return positive decimal integer
      */
-
-    // todo: need to be removed
-    public static int parseInt(final String s) {
-        int len = s.length();
-        int num = '0' - s.charAt(0);
-
-        int i = 1;
-        while (i < len) {
-            num = num * 10 + '0' - s.charAt(i++);
-        }
-        return -1 * num;
-    }
-
-    // todo: need to be removed
     public static int parseInt(final String s, int from, int to) {
         int num = '0' - s.charAt(from);
 
@@ -36,23 +20,5 @@ public class Utils {
             num = num * 10 + '0' - s.charAt(i++);
         }
         return -1 * num;
-    }
-
-
-    public static int parseInt(final char[] arr, int from, int to) {
-        int num = '0' - arr[from];
-
-        int i = from + 1;
-        while (i < to) {
-            num = num * 10 + '0' - arr[i++];
-        }
-        return -1 * num;
-    }
-
-    public static Callable<Void> toCallable(UnsafeRunnable runnable) {
-        return () -> {
-            runnable.run();
-            return null;
-        };
     }
 }

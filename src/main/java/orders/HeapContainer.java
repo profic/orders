@@ -2,11 +2,11 @@ package orders;
 
 import java.util.Comparator;
 
-public class HeapContainer<T extends OrderEntry> implements IContainer<T> {
-    private final HeapOptimized<T> heap;
+public class HeapContainer<T extends OrderEntry> implements OrdersContainer<T> {
+    private final OrdersHeap<T> heap;
 
     public HeapContainer(Comparator<T> cmp, int capacity) {
-        this.heap = new HeapOptimized<>(capacity + 1, cmp);
+        this.heap = new OrdersHeap<>(capacity + 1, cmp);
     }
 
     @Override public void add(T el) {

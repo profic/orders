@@ -1,6 +1,6 @@
 package orders;
 
-public interface IContainer<T extends OrderEntry> {
+public interface OrdersContainer<T extends OrderEntry> {
     void add(T el);
 
     void removeFirst();

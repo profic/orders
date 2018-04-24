@@ -3,7 +3,7 @@ package orders;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class HeapOptimized<E extends OrderEntry> {
+public class OrdersHeap<E extends OrderEntry> {
 
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
@@ -14,7 +14,7 @@ public class HeapOptimized<E extends OrderEntry> {
     private int[]    indices;
 
 
-    public HeapOptimized(int initialCapacity, Comparator<E> cmp) {
+    public OrdersHeap(int initialCapacity, Comparator<E> cmp) {
         this.cmp = cmp;
         if (initialCapacity < 1) {
             throw new IllegalArgumentException();
