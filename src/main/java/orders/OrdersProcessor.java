@@ -85,6 +85,8 @@ public class OrdersProcessor {
     }
 
     private void buy(final Buyer buyer) {
+        OrdersContainer<Seller> sellers = this.sellers;
+
         Seller seller = sellers.first();
         while (seller != null && seller.price() <= buyer.price() && buyer.hasItems()) {
             buy(buyer, seller, seller.price());
@@ -121,6 +123,8 @@ public class OrdersProcessor {
     }
 
     private void sell(final Seller seller) {
+        OrdersContainer<Buyer> buyers = this.buyers;
+
         Buyer buyer = buyers.first();
         while (buyer != null && seller.hasItems() && buyer.price() >= seller.price()) {
             buy(buyer, seller, buyer.price());
@@ -165,11 +169,14 @@ public class OrdersProcessor {
 
     private void process(final CountDownLatch parseLatch) throws Exception {
         parseLatch.await();
-        int position = 0;
-        while (PARSE_END != parsedArr.get(position)) {
+        int                          position  = 0;
+        boolean                      run       = true;
+        AtomicReferenceArray<Object> parsedArr = this.parsedArr;
+        while (run) {
             Object e;
             while ((e = parsedArr.get(position)) != null) {
                 if (PARSE_END == e) {
+                    run = false;
                     break;
                 }
                 if (isCancelOrder(e)) {
@@ -183,6 +190,7 @@ public class OrdersProcessor {
                 }
                 position++;
             }
+            Thread.yield();
         }
     }
 
@@ -200,18 +208,23 @@ public class OrdersProcessor {
         return executor.submit(() -> {
             readLatch.await();
             parseLatch.countDown();
-            int pos = 0;
-            while (!END.equals(readArr.get(pos))) {
+            int                          position  = 0;
+            boolean                      run       = true;
+            AtomicReferenceArray<String> readArr   = this.readArr;
+            AtomicReferenceArray<Object> parsedArr = this.parsedArr;
+            while (run) {
                 String s;
-                while ((s = readArr.get(pos)) != null) {
+                while ((s = readArr.get(position)) != null) {
                     if (END.equals(s)) {
+                        run = false;
                         break;
                     }
-                    parsedArr.set(pos, doParse(s));
-                    pos++;
+                    parsedArr.set(position, doParse(s));
+                    position++;
                 }
+                Thread.yield();
             }
-            parsedArr.set(pos, PARSE_END);
+            parsedArr.set(position, PARSE_END);
             return null;
         });
     }
