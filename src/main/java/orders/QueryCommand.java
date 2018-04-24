@@ -1,6 +1,5 @@
 package orders;
 
-@SuppressWarnings("Duplicates")
 public class QueryCommand implements Runnable{
 
     private final OrdersContainer<Buyer>  buyers;

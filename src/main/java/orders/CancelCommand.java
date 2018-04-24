@@ -1,6 +1,5 @@
 package orders;
 
-@SuppressWarnings("Duplicates")
 public class CancelCommand implements Runnable {
 
     private final OrdersContainer<Buyer>  buyers;

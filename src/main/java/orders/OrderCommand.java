@@ -1,6 +1,5 @@
 package orders;
 
-@SuppressWarnings("Duplicates")
 public class OrderCommand implements Runnable {
 
     private final OrdersContainer<Buyer>  buyers;
