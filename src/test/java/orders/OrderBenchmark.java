@@ -38,6 +38,7 @@ public class OrderBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     public void multipleThread() throws Exception {
-        new OrdersProcessor(e, "c:\\Users\\Uladzislau_Malchanau\\Desktop\\data2.txt").run();
+//        new OrdersProcessor(e, "c:\\Users\\Uladzislau_Malchanau\\Desktop\\data2.txt").run();
+        new OrdersProcessor(e, "C:\\Users\\Влад\\Desktop\\data2.txt").run();
     }
 }

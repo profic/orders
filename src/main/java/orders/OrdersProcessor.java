@@ -13,7 +13,7 @@ import static orders.Utils.checkedRunnable;
 
 public class OrdersProcessor {
 
-    public static final  int CHUNK_CNT    = 10;
+    public static final  int CHUNK_CNT    = 2;
     private static final int PRICES_COUNT = 10_000;
     private static final int IDS_COUNT    = 1_000_000 + 1;
     public static final  int BUF_SIZE     = (int) Math.ceil(OrdersProcessor.IDS_COUNT / OrdersProcessor.CHUNK_CNT) + 1;
@@ -40,7 +40,7 @@ public class OrdersProcessor {
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
 //            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
-            OrdersProcessor o = new OrdersProcessor(executor, "c:\\Users\\Uladzislau_Malchanau\\Desktop\\data2.txt");
+            OrdersProcessor o = new OrdersProcessor(executor, "C:\\Users\\Влад\\Desktop\\data2.txt");
             o.run();
         } finally {
             executor.shutdown();
@@ -78,7 +78,12 @@ public class OrdersProcessor {
                     break;
                 }
                 for (Object o : buf) {
-                    factory.createCommand(o).run();
+                    if (o == null) {
+                        run = false;
+                        break;
+                    } else {
+                        factory.createCommand(o).run();
+                    }
                 }
                 position++;
             }

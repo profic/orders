@@ -44,8 +44,7 @@ public class ParseJob {
                 }
                 Thread.yield();
             }
-            parsedArr.set(position, PARSE_END);
-            System.out.println("END PARSING");
+            parsedArr.set(position - 1, PARSE_END);
             return null;
         });
     }
