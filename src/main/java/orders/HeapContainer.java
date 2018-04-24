@@ -3,10 +3,12 @@ package orders;
 import java.util.Comparator;
 
 public class HeapContainer<T extends OrderEntry> implements OrdersContainer<T> {
-    private final OrdersHeap<T> heap;
+//    private final OrdersHeap<T> heap;
+    private final OrdersComparableHeap<T> heap;
 
     public HeapContainer(Comparator<T> cmp, int capacity) {
-        this.heap = new OrdersHeap<>(capacity + 1, cmp);
+//        this.heap = new OrdersHeap<>(capacity + 1, cmp);
+        this.heap = new OrdersComparableHeap<>(capacity + 1);
     }
 
     @Override public void add(T el) {

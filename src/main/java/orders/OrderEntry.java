@@ -1,8 +1,8 @@
 package orders;
 
-public abstract class OrderEntry {
+public abstract class OrderEntry<T extends OrderEntry> implements Comparable<T> {
     private final int id;
-    private final int price;
+    protected final int price;
 
     private int size;
 
