@@ -19,13 +19,17 @@ public class OrdersProcessor {
     private static final String END          = "END";
     private static final Object PARSE_END    = new Object();
 
-    private final Comparator<Buyer>       BUYERS_COMPARATOR = Comparator.comparingInt(Buyer::price).reversed();
-    private final Prices                  prices            = new Prices(PRICES_COUNT);
-    private final OrdersContainer<Buyer>  buyers            = new HeapContainer<>(BUYERS_COMPARATOR, IDS_COUNT);
-    private final OrdersContainer<Seller> sellers           = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
+    private final Comparator<Buyer> BUYERS_COMPARATOR = Comparator.comparingInt(Buyer::price).reversed();
+
+    private final Prices                  prices  = new Prices(PRICES_COUNT);
+    private final OrdersContainer<Buyer>  buyers  = new HeapContainer<>(BUYERS_COMPARATOR, IDS_COUNT);
+    private final OrdersContainer<Seller> sellers = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
 
     private final AtomicReferenceArray<String> readArr   = new AtomicReferenceArray<>(IDS_COUNT + 1);
     private final AtomicReferenceArray<Object> parsedArr = new AtomicReferenceArray<>(IDS_COUNT + 1);
+    private final CommandFactory factory = new CommandFactory(
+            prices, buyers, sellers
+    );
 
     private final ExecutorService executor;
     private final Path            path;
@@ -38,6 +42,7 @@ public class OrdersProcessor {
     public static void main(String[] args) throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
+//            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
             OrdersProcessor o = new OrdersProcessor(executor, "c:\\Users\\Uladzislau_Malchanau\\Desktop\\data2.txt");
             o.run();
         } finally {
@@ -45,62 +50,6 @@ public class OrdersProcessor {
         }
     }
 
-    private void processQuery(final String s) {
-        if (isBuyerQuery(s)) {
-            showPrice(buyers.first());
-        } else if (isSellerQuery(s)) {
-            showPrice(sellers.first());
-        } else {
-            showPrice(s);
-        }
-    }
-
-    private boolean isSellerQuery(final String s) {
-        return s.charAt(3) == 'e';
-    }
-
-    private boolean isBuyerQuery(final String s) {
-        return s.charAt(2) == 'b';
-    }
-
-    private void showPrice(final String s) {
-        int priceBeginIdx = s.lastIndexOf(',') + 1;
-
-        int price = Utils.parseInt(s, priceBeginIdx, s.length());
-        print(prices.getPrice(price));
-    }
-
-    private void showPrice(OrderEntry entry) {
-        if (entry == null) {
-            print("empty");
-        } else {
-            int price = entry.price();
-            print(price + "," + prices.getPrice(price));
-        }
-    }
-
-    private void cancelOrder(final int id) {
-        sellers.removeById(id);
-        buyers.removeById(id);
-    }
-
-    private void buy(final Buyer buyer) {
-        OrdersContainer<Seller> sellers = this.sellers;
-
-        Seller seller = sellers.first();
-        while (seller != null && seller.price() <= buyer.price() && buyer.hasItems()) {
-            buy(buyer, seller, seller.price());
-            if (!seller.hasItems()) {
-                sellers.removeFirst();
-                seller = sellers.first();
-            }
-        }
-
-        if (buyer.hasItems()) {
-            buyers.add(buyer);
-            prices.increase(buyer.price(), buyer.size());
-        }
-    }
 
     private <T extends OrderEntry> T parse(
             final String s,
@@ -120,39 +69,6 @@ public class OrdersProcessor {
         int size  = Utils.parseInt(s, beginSizeIdx, endSizeIdx);
 
         return (T) ctor.create(id, size, price);
-    }
-
-    private void sell(final Seller seller) {
-        OrdersContainer<Buyer> buyers = this.buyers;
-
-        Buyer buyer = buyers.first();
-        while (buyer != null && seller.hasItems() && buyer.price() >= seller.price()) {
-            buy(buyer, seller, buyer.price());
-            if (!buyer.hasItems()) {
-                buyers.removeFirst();
-                buyer = buyers.first();
-            }
-        }
-
-        if (seller.hasItems()) {
-            prices.increase(seller.price(), seller.size());
-            sellers.add(seller);
-        }
-    }
-
-    private void buy(Buyer buyer, Seller seller, int decreasePrice) {
-        prices.decrease(decreasePrice, Math.min(seller.size(), buyer.size()));
-        int oldBuyerSize = buyer.size();
-        buyer.decreaseSize(seller.size());
-        seller.decreaseSize(oldBuyerSize);
-    }
-
-    // todo: cleanup
-    private void print(Object o) {
-        if (false == true) { // todo: remove
-//        if (true) {
-            System.out.println(o);
-        }
     }
 
     public void run() throws Exception {
@@ -179,29 +95,12 @@ public class OrdersProcessor {
                     run = false;
                     break;
                 }
-                if (isCancelOrder(e)) {
-                    cancelOrder((Integer) e);
-                } else if (isQuery(e)) {
-                    processQuery((String) e);
-                } else if (e instanceof Buyer) {
-                    buy((Buyer) e);
-                } else {
-                    sell((Seller) e);
-                }
+                factory.createCommand(e).run();
                 position++;
             }
             Thread.yield();
         }
     }
-
-    private boolean isQuery(final Object e) {
-        return e.getClass() == String.class;
-    }
-
-    private boolean isCancelOrder(final Object e) {
-        return e.getClass() == Integer.class;
-    }
-
     private Future<Object> parse(
             final CountDownLatch readLatch,
             final CountDownLatch parseLatch) {

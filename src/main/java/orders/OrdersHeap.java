@@ -1,54 +1,31 @@
 package orders;
 
-import java.util.Arrays;
 import java.util.Comparator;
 
 public class OrdersHeap<E extends OrderEntry> {
 
-    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
-
     private final Comparator<E> cmp;
+    private final Object[]      queue;
+    private final int[]         indices;
 
-    private Object[] queue;
-    private int      size = 0;
-    private int[]    indices;
+    private int size = 0;
 
 
     public OrdersHeap(int initialCapacity, Comparator<E> cmp) {
-        this.cmp = cmp;
         if (initialCapacity < 1) {
             throw new IllegalArgumentException();
         }
+
+        this.cmp = cmp;
         this.queue = new Object[initialCapacity];
-        indices = new int[initialCapacity];
+        this.indices = new int[initialCapacity];
         for (int i = 0; i < indices.length; i++) {
             indices[i] = -1;
         }
     }
 
-    private void grow(int minCapacity) {
-        int oldCapacity = queue.length;
-        int newCapacity = oldCapacity + ((oldCapacity < 64) ?
-                (oldCapacity + 2) :
-                (oldCapacity / 2));
-        if (newCapacity - MAX_ARRAY_SIZE > 0) {
-            newCapacity = hugeCapacity(minCapacity);
-        }
-        queue = Arrays.copyOf(queue, newCapacity);
-        indices = Arrays.copyOf(indices, newCapacity);
-    }
-
-    private static int hugeCapacity(int minCapacity) {
-        return (minCapacity > MAX_ARRAY_SIZE) ?
-                Integer.MAX_VALUE :
-                MAX_ARRAY_SIZE;
-    }
-
     public boolean add(E el) {
         int idx = size;
-        if (idx >= queue.length) {
-            grow(idx + 1);
-        }
         size = idx + 1;
         if (idx == 0) {
             set(0, el);
