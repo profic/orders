@@ -3,25 +3,23 @@ package orders;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 
-public class Action<In, Out> {
-    private final AtomicReferenceArray<In> inArr;
+public class Action2<In, Out> {
+    private final CircularBuffer<In> inArr;
 
-    public AtomicReferenceArray<Out> getOutArr() {
+    public CircularBuffer<Out> getOutArr() {
         return outArr;
     }
 
-    private final AtomicReferenceArray<Out> outArr;
-    private final In                        inPoisonPill;
-    private final Out                       outPoisonPill;
-    private final ExecutorService           e;
+    private final CircularBuffer<Out> outArr;
+    private final In                  inPoisonPill;
+    private final Out                 outPoisonPill;
+    private final ExecutorService     e;
 
-    public Action(final AtomicReferenceArray<In> inArr, final int size, In inPoisonPill, Out outPoisonPill, ExecutorService e) {
+    public Action2(final CircularBuffer<In> inArr, final int size, In inPoisonPill, Out outPoisonPill, ExecutorService e) {
         this.inArr = inArr;
-        this.outArr = new AtomicReferenceArray<>(size);
+        this.outArr = new CircularBuffer<>(size);
         this.inPoisonPill = inPoisonPill;
         this.outPoisonPill = outPoisonPill;
         this.e = e;
@@ -31,23 +29,22 @@ public class Action<In, Out> {
         return e.submit(() -> {
 //            System.out.println("ACTION RUN");
             beforeRun.call();
-            int pos = 0;
             boolean poisonPillReceived = false;
             while (!poisonPillReceived) {
                 In s;
-                while ((s = inArr.get(pos)) != null) {
+                while ((s = inArr.peek()) != null) {
+                    inArr.increaseGetPos();
 //                    System.out.println("READING...");
                     if (inPoisonPill.equals(s)) {
                         poisonPillReceived = true;
                         break;
                     }
-                    outArr.set(pos, function.apply(s));
-                    pos++;
+                    outArr.add(function.apply(s));
                 }
                 Thread.yield();
             }
 //            System.out.println("ACTION COMPLETED");
-            outArr.set(pos, outPoisonPill);
+            outArr.add(outPoisonPill);
             return null;
         });
     }
