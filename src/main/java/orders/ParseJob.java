@@ -27,6 +27,7 @@ public class ParseJob {
                 String[] buf;
                 while ((buf = readArr.get(position)) != null) {
                     if (ReadJob.EMPTY_ARR == buf) {
+                        run = false;
                         break;
                     }
                     Object[] outBuf = new Object[OrdersProcessor.BUF_SIZE];
@@ -44,6 +45,7 @@ public class ParseJob {
                 Thread.yield();
             }
             parsedArr.set(position, PARSE_END);
+            System.out.println("END PARSING");
             return null;
         });
     }

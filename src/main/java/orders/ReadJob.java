@@ -37,6 +37,7 @@ public class ReadJob {
                         String line = b.readLine();
                         if (line == null) {
                             run = false;
+                            buf[i] = END;
                             break;
                         } else {
                             buf[i] = line;
@@ -50,6 +51,7 @@ public class ReadJob {
             } finally {
                 readArr.set(pos, EMPTY_ARR);
             }
+            System.out.println("END READING");
         });
     }
 
