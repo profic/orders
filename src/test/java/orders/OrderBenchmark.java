@@ -27,7 +27,7 @@ public class OrderBenchmark {
 
     @Setup
     public void setup() {
-        e = Executors.newFixedThreadPool(3);
+        e = Executors.newFixedThreadPool(2);
     }
 
     @TearDown

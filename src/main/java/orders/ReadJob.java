@@ -23,7 +23,7 @@ public class ReadJob {
         this.executor = executor;
     }
 
-    public Future<?> read(final Runnable beforeExecution) {
+    public Future<?> read(final CheckedRunnable beforeExecution) {
         return executor.submit(() -> {
             beforeExecution.run();
             int pos = 0;
@@ -37,6 +37,7 @@ public class ReadJob {
             } finally {
                 readArr.set(pos, END);
             }
+            return null;
         });
     }
 

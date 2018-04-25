@@ -23,11 +23,7 @@ public class CommandFactory {
         } else if (isQuery(e)) {
             command = new QueryCommand(buyers, sellers, (String) e, prices);
         } else {
-            try {
-                command = new OrderCommand(buyers, sellers, (OrderActor) e, prices);
-            } catch (Exception e1) {
-                throw new RuntimeException();
-            }
+            command = new OrderCommand(buyers, sellers, (OrderActor) e, prices);
         }
         return command;
     }

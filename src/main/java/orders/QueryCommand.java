@@ -1,13 +1,18 @@
 package orders;
 
-public class QueryCommand implements Runnable{
+public class QueryCommand implements Runnable {
 
     private final OrdersContainer<Buyer>  buyers;
     private final OrdersContainer<Seller> sellers;
     private final String                  query;
     private final Prices                  prices;
 
-    public QueryCommand(final OrdersContainer<Buyer> buyers, final OrdersContainer<Seller> sellers, final String query, final Prices prices) {
+    public QueryCommand(
+            final OrdersContainer<Buyer> buyers,
+            final OrdersContainer<Seller> sellers,
+            final String query,
+            final Prices prices
+    ) {
         this.buyers = buyers;
         this.sellers = sellers;
         this.query = query;

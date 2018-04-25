@@ -9,8 +9,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-import static orders.Utils.checkedRunnable;
-
 public class OrdersProcessor {
 
     private static final int PRICES_COUNT = 10_000;
@@ -53,10 +51,10 @@ public class OrdersProcessor {
         ParseJob parseJob = new ParseJob(executor, IDS_COUNT + 1);
 
         Future<?> readFuture = readJob.read(readLatch::countDown);
-        Future<Object> parseFuture = parseJob.parse(checkedRunnable(() -> {
+        Future<Object> parseFuture = parseJob.parse(() -> {
             readLatch.await();
             parseLatch.countDown();
-        }), readJob.getReadArr());
+        }, readJob.getReadArr());
 
         process(parseLatch, parseJob.getParsedArr());
 

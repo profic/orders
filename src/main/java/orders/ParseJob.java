@@ -17,9 +17,9 @@ public class ParseJob {
     }
 
 
-    public Future<Object> parse(Runnable beforeRun, final AtomicReferenceArray<String> readArr) {
+    public Future<Object> parse(CheckedRunnable beforeRun, final AtomicReferenceArray<String> readArr) {
         return executor.submit(() -> {
-            beforeRun.run();
+//            beforeRun.run(); // todo: undo
             int                          position  = 0;
             boolean                      run       = true;
             AtomicReferenceArray<Object> parsedArr = this.parsedArr;
@@ -32,6 +32,9 @@ public class ParseJob {
                     }
                     parsedArr.set(position, doParse(s));
                     position++;
+                    if (position == 1_000) { // todo: undo
+                        beforeRun.run();
+                    }
                 }
                 Thread.yield();
             }
