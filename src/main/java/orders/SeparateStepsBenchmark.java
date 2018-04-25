@@ -169,10 +169,11 @@ public class SeparateStepsBenchmark {
         AtomicReferenceArray<Object> parsedArr = this.parsedArr;
         process(parsedArr);
 
-        System.out.println("QueryCommand.showPriceForOrder = " + QueryCommand.showPriceForOrder / QueryCommand.showPriceForOrderCounter);
-        System.out.println("QueryCommand.showPriceForSize = " + QueryCommand.showPriceForSize / QueryCommand.showPriceForSizeCounter);
-        System.out.println("CancelCommand.time = " + CancelCommand.time / CancelCommand.counter);
-        System.out.println("OrderCommand.time = " + OrderCommand.time / OrderCommand.counter);
+
+        System.out.println("QueryCommand.showPriceForOrder = " + QueryCommand.showPriceForOrderSw.getAvg());
+        System.out.println("QueryCommand.showPriceForSize = " + QueryCommand.showPriceForSizeSw.getAvg());
+        System.out.println("CancelCommand.time = " + CancelCommand.sw.getAvg());
+        System.out.println("OrderCommand.time = " + OrderCommand.sw.getAvg());
         HeapContainer.showStats();
 
         QueryCommand.reset();
@@ -210,7 +211,7 @@ public class SeparateStepsBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     public void parseAndProcessFromDifferentSources() throws Exception {
-        AtomicReferenceArray<Object> parsedArr = this.parsedArr;
+        AtomicReferenceArray<Object> parsedArr     = this.parsedArr;
         Future<?>                    processFuture = executor.submit(() -> process(parsedArr));
 
         Future<Object> parseFuture = doParse();
@@ -231,14 +232,14 @@ public class SeparateStepsBenchmark {
 
     private Future<?> processForArray() {
         return executor.submit(() -> {
-                CommandFactory factory = getHeapFactory();
-                for (Object o : parsedList) {
-                    if (o == ParseJob.PARSE_END) {
-                        break;
-                    }
-                    factory.createCommand(o).run();
+            CommandFactory factory = getHeapFactory();
+            for (Object o : parsedList) {
+                if (o == ParseJob.PARSE_END) {
+                    break;
                 }
-            });
+                factory.createCommand(o).run();
+            }
+        });
     }
 
     @Benchmark

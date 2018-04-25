@@ -7,10 +7,8 @@ public class QueryCommand implements Runnable {
     private final String                  query;
     private final Prices                  prices;
 
-    public static long showPriceForOrder        = 0;
-    public static long showPriceForSize         = 0;
-    public static long showPriceForOrderCounter = 0;
-    public static long showPriceForSizeCounter  = 0;
+    public static StopWatch showPriceForOrderSw = new StopWatch();
+    public static StopWatch showPriceForSizeSw  = new StopWatch();
 
     public QueryCommand(
             final OrdersContainer<Buyer> buyers,
@@ -25,34 +23,28 @@ public class QueryCommand implements Runnable {
     }
 
     private void showPrice(final String s) {
-        long start         = System.nanoTime();
-        int  priceBeginIdx = s.lastIndexOf(',') + 1;
+        showPriceForSizeSw.start();
+        int priceBeginIdx = s.lastIndexOf(',') + 1;
 
         int price = Utils.parseInt(s, priceBeginIdx, s.length());
         print(prices.getPrice(price));
-        long totalTime = System.nanoTime() - start;
-        showPriceForOrder += totalTime;
-        showPriceForOrderCounter++;
+        showPriceForSizeSw.stop();
     }
 
     public static void reset() {
-        showPriceForOrder = 0;
-        showPriceForSize = 0;
-        showPriceForOrderCounter = 0;
-        showPriceForSizeCounter  = 0;
+        showPriceForOrderSw = new StopWatch();
+        showPriceForSizeSw = new StopWatch();
     }
 
     private void showPrice(OrderActor entry) {
-        long start = System.nanoTime();
+        showPriceForOrderSw.start();
         if (entry == null) {
             print("empty");
         } else {
             int price = entry.price();
             print(price + "," + prices.getPrice(price));
         }
-        long totalTime        = System.nanoTime() - start;
-        showPriceForSize += totalTime;
-        showPriceForSizeCounter++;
+        showPriceForOrderSw.stop();
     }
 
 

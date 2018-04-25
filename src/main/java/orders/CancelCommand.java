@@ -7,8 +7,7 @@ public class CancelCommand implements Runnable {
     private final Prices                  prices;
     private final int                     id;
 
-    public static long time    = 0;
-    public static long counter = 0;
+    public static StopWatch sw = new StopWatch();
 
 
     public CancelCommand(final OrdersContainer<Buyer> buyers, final OrdersContainer<Seller> sellers, final int id, final Prices prices) {
@@ -19,15 +18,12 @@ public class CancelCommand implements Runnable {
     }
 
     public static void reset() {
-        time = 0;
-        counter = 0;
+        sw = new StopWatch();
     }
 
     @Override
     public void run() {
-        counter++;
-
-        long start = System.nanoTime();
+        sw.start();
 
         OrderActor res = sellers.removeById(id);
         if (res == null) {
@@ -37,7 +33,6 @@ public class CancelCommand implements Runnable {
             prices.decrease(res.price(), res.size());
         }
 
-        long totalTime = System.nanoTime() - start;
-        time += totalTime;
+        sw.stop();
     }
 }

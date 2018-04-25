@@ -7,8 +7,7 @@ public class OrderCommand implements Runnable {
     private final OrderActor              order;
     private final Prices                  prices;
 
-    public static long time    = 0;
-    public static long counter = 0;
+    public static StopWatch sw = new StopWatch();
 
     public OrderCommand(
             final OrdersContainer<Buyer> buyers,
@@ -23,8 +22,7 @@ public class OrderCommand implements Runnable {
 
     @Override
     public void run() {
-        counter++;
-        long start = System.nanoTime();
+        sw.start();
 
         OrderActor order = this.order;
         if (order instanceof Buyer) {
@@ -33,14 +31,11 @@ public class OrderCommand implements Runnable {
             sell((Seller) order);
         }
 
-        long totalTime = System.nanoTime() - start;
-        time += totalTime;
-//        System.out.println("totalTime = " + time / counter);
+        sw.stop();
     }
 
     public static void reset() {
-        time = 0;
-        counter = 0;
+        sw = new StopWatch();
     }
 
     private void sell(final Seller seller) {
