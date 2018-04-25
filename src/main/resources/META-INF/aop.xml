@@ -1,0 +1,13 @@
+<aspectj>
+    <aspects>
+        <!--your aspect-->
+        <aspect name="orders.LogExecutionTime"/>
+    </aspects>
+    <weaver options="-verbose">
+        <!--all instrumented classes-->
+        <include within="orders.*"/>
+
+        <!--todo: сам аспект надо тоже добавлять1-->
+        <include within="orders.LogExecutionTime"/>
+    </weaver>
+</aspectj>

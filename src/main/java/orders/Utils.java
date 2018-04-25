@@ -2,6 +2,8 @@ package orders;
 
 public class Utils {
 
+    public static final String ORDERS_PATH = System.getenv("ORDERS_PATH");
+
     private Utils() {
         throw new UnsupportedOperationException("No way.");
     }
@@ -21,4 +23,5 @@ public class Utils {
         }
         return -1 * num;
     }
+
 }

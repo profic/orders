@@ -36,7 +36,7 @@ public class OrdersProcessor {
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
 //            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
-            OrdersProcessor o = new OrdersProcessor(executor, "c:\\Users\\Uladzislau_Malchanau\\Desktop\\data2.txt");
+            OrdersProcessor o = new OrdersProcessor(executor, Utils.ORDERS_PATH);
             o.run();
         } finally {
             executor.shutdown();

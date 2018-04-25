@@ -2,6 +2,7 @@ package orders;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class ParseJob {
@@ -19,7 +20,8 @@ public class ParseJob {
 
     public Future<Object> parse(CheckedRunnable beforeRun, final AtomicReferenceArray<String> readArr) {
         return executor.submit(() -> {
-//            beforeRun.run(); // todo: undo
+            beforeRun.run();
+            long                         start     = System.nanoTime();
             int                          position  = 0;
             boolean                      run       = true;
             AtomicReferenceArray<Object> parsedArr = this.parsedArr;
@@ -32,13 +34,13 @@ public class ParseJob {
                     }
                     parsedArr.set(position, doParse(s));
                     position++;
-                    if (position == 1_000) { // todo: undo
-                        beforeRun.run();
-                    }
                 }
                 Thread.yield();
             }
             parsedArr.set(position, PARSE_END);
+            long processTime = System.nanoTime() - start;
+//            System.out.println("processTime parse ns = " + processTime);
+//            System.out.println("processTime parse ms = " + TimeUnit.NANOSECONDS.toMillis(processTime));
             return null;
         });
     }
