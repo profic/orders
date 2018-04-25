@@ -31,6 +31,7 @@ public class SeparateStepsBenchmark {
 //                "readAndParse"
 //                "parseAndProcessFromDifferentSourcesWithoutAtomicReferenceArray",
                 "_process"
+//                "processWithoutAtomicReferenceArray"
         );
         String include = methodsToInclude
                 .stream()
@@ -220,6 +221,28 @@ public class SeparateStepsBenchmark {
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
+    public void processWithoutAtomicReferenceArray() throws Exception {
+
+        Future<?> processFuture = processForArray();
+
+        processFuture.get();
+//        checkEquality();
+    }
+
+    private Future<?> processForArray() {
+        return executor.submit(() -> {
+                CommandFactory factory = getHeapFactory();
+                for (Object o : parsedList) {
+                    if (o == ParseJob.PARSE_END) {
+                        break;
+                    }
+                    factory.createCommand(o).run();
+                }
+            });
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
     public void parseAndProcessFromDifferentSourcesWithoutAtomicReferenceArray() throws Exception {
         Future<?> parseFuture = executor.submit(() -> {
             List<Object> parsedArr = new ArrayList<>(readList.size());
@@ -230,15 +253,7 @@ public class SeparateStepsBenchmark {
             return parsedArr;
         });
 
-        Future<?> processFuture = executor.submit(() -> {
-            CommandFactory factory = getHeapFactory();
-            for (Object o : parsedList) {
-                if (o == ParseJob.PARSE_END) {
-                    break;
-                }
-                factory.createCommand(o).run();
-            }
-        });
+        Future<?> processFuture = processForArray();
 
         parseFuture.get();
         processFuture.get();

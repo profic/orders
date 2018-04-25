@@ -33,8 +33,8 @@ public class TreeMapContainer<T extends OrderActor> implements OrdersContainer<T
         elById[el.id()] = el;
         size++;
         long total = System.nanoTime() - start;
-        addCounter++;
-        addTime += total;
+//        addCounter++;
+//        addTime += total;
     }
 
     @Override public void removeFirst() {
@@ -51,8 +51,8 @@ public class TreeMapContainer<T extends OrderActor> implements OrdersContainer<T
             size--;
 
             long total = System.nanoTime() - start;
-            removeFirstCounter++;
-            removeFirstTime += total;
+//            removeFirstCounter++;
+//            removeFirstTime += total;
         }
     }
 
@@ -89,8 +89,8 @@ public class TreeMapContainer<T extends OrderActor> implements OrdersContainer<T
         }
 
         long total = System.nanoTime() - start;
-        removeCounter++;
-        removeTime += total;
+//        removeCounter++;
+//        removeTime += total;
     }
 
     public static void showStats() { // todo: remove

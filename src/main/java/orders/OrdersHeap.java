@@ -111,11 +111,7 @@ public class OrdersHeap<E extends OrderActor> {
             if (((E) queue[idx]).id() != id) {
                 throw new IllegalStateException();
             }
-            E res = removeAt(idx, id);
-            if (res.id() != id) {
-                throw new IllegalStateException();
-            }
-            return res;
+            return removeAt(idx, id);
         }
         return null;
     }

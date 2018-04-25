@@ -78,8 +78,8 @@ public class QueryCommand implements Runnable {
     // todo: cleanup
     private void print(Object o) {
 //        SeparateStepsBenchmark.l.add(o.toString());
-//        if (false == true) { // todo: remove
-        if (true) {
+        if (false == true) { // todo: remove
+//        if (true) {
             System.out.println(o);
         }
     }
