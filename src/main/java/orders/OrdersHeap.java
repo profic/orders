@@ -87,7 +87,7 @@ public class OrdersHeap<E extends OrderActor> {
     @SuppressWarnings("unchecked")
     private E removeAt(int idx, int id) {
         int size = --this.size;
-        E res = (E) queue[idx];
+        E   res  = (E) queue[idx];
         if (size == idx) {
             remove(idx, id);
             return res;
@@ -97,9 +97,6 @@ public class OrdersHeap<E extends OrderActor> {
             siftDown(idx, moved);
             if (queue[idx] == moved) {
                 siftUp(idx, moved, false);
-//                if (queue[idx] != moved) {
-//                    return moved;
-//                }
             }
             return res;
         }
@@ -108,10 +105,10 @@ public class OrdersHeap<E extends OrderActor> {
     public E removeById(int id) {
         int idx = indices[id];
         if (idx != -1) {
-            if (((E) queue[idx]).id() != id) {
-                throw new IllegalStateException();
-            }
-            return removeAt(idx, id);
+//            return removeAt(idx, id);
+            E res = (E) queue[idx];
+            res.cancelled = true;
+            return res;
         }
         return null;
     }

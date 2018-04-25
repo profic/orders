@@ -43,6 +43,12 @@ public class OrderCommand implements Runnable {
 
         Buyer buyer = buyers.first();
         while (buyer != null && seller.hasItems() && buyer.price() >= seller.price()) {
+            if (buyer.cancelled) {
+                buyers.removeFirst();
+                buyer = buyers.first();
+                continue;
+            }
+
             buy(buyer, seller, buyer.price());
             if (!buyer.hasItems()) {
                 buyers.removeFirst();
@@ -68,6 +74,12 @@ public class OrderCommand implements Runnable {
 
         Seller seller = sellers.first();
         while (seller != null && seller.price() <= buyer.price() && buyer.hasItems()) {
+            if (seller.cancelled) {
+                sellers.removeFirst();
+                seller = sellers.first();
+                continue;
+            }
+
             buy(buyer, seller, seller.price());
             if (!seller.hasItems()) {
                 sellers.removeFirst();
