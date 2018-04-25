@@ -209,7 +209,7 @@ public class SeparateStepsBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     public void parseAndProcessFromDifferentSources() throws Exception {
-        AtomicReferenceArray<Object> parsedArr     = this.parsedArr;
+        AtomicReferenceArray<Object> parsedArr = this.parsedArr;
         Future<?>                    processFuture = executor.submit(() -> process(parsedArr));
 
         Future<Object> parseFuture = doParse();
