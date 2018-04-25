@@ -172,14 +172,12 @@ public class SeparateStepsBenchmark {
         System.out.println("QueryCommand.showPriceForSize = " + QueryCommand.showPriceForSize / QueryCommand.showPriceForSizeCounter);
         System.out.println("CancelCommand.time = " + CancelCommand.time / CancelCommand.counter);
         System.out.println("OrderCommand.time = " + OrderCommand.time / OrderCommand.counter);
-//        HeapContainer.showStats();
-        TreeMapContainer.showStats();
+        HeapContainer.showStats();
 
         QueryCommand.reset();
         CancelCommand.reset();
         OrderCommand.reset();
-//        HeapContainer.reset();
-        TreeMapContainer.reset();
+        HeapContainer.reset();
     }
 
     @Benchmark
@@ -248,8 +246,8 @@ public class SeparateStepsBenchmark {
     }
 
     private void process(final AtomicReferenceArray<Object> parsedArr) {
-//        CommandFactory factory = getHeapFactory();
-        CommandFactory factory = getTreeFactory();
+        CommandFactory factory = getHeapFactory();
+//        CommandFactory factory = getTreeFactory();
 
         int     position = 0;
         boolean run      = true;
