@@ -13,10 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import static java.util.stream.Collectors.joining;
@@ -26,11 +23,14 @@ public class SeparateStepsBenchmark {
     public static final Comparator<Seller>           SELLER_COMPARATOR = Comparator.comparingInt(Seller::price);
     private             AtomicReferenceArray<String> readArr;
     private             AtomicReferenceArray<Object> parsedArr;
+    private             List<Object>                 parsedList;
+    private             ArrayList<String>            readList;
 
     public static void main(String[] args) throws RunnerException {
         List<String> methodsToInclude = Arrays.asList(
 //                "readAndParse"
-                "parseAndProcess"
+//                "parseAndProcessFromDifferentSourcesWithoutAtomicReferenceArray",
+                "_process"
         );
         String include = methodsToInclude
                 .stream()
@@ -40,7 +40,7 @@ public class SeparateStepsBenchmark {
         Options opt = new OptionsBuilder()
                 .include(include)
                 .warmupIterations(20)
-                .measurementIterations(20)
+                .measurementIterations(10)
                 .forks(1)
                 .build();
         new Runner(opt).run();
@@ -58,6 +58,15 @@ public class SeparateStepsBenchmark {
         Future<?> readFuture = readJob.read(readLatch::countDown);
         readFuture.get();
         this.readArr = readJob.getReadArr();
+        this.readList = new ArrayList<>(readArr.length());
+        for (int i = 0; i < readArr.length(); i++) {
+            String s = readArr.get(i);
+            if (s == null) {
+                break;
+            }
+            this.readList.add(s);
+        }
+
     }
 
     @Setup(value = Level.Invocation)
@@ -71,6 +80,16 @@ public class SeparateStepsBenchmark {
         this.parsedArr = parseJob.getParsedArr();
         Future<Object> parseFuture = parseJob.parse(() -> { }, readArr);
         parseFuture.get();
+
+        List<Object> parsedList = new ArrayList<>(parsedArr.length());
+        for (int i = 0; i < parsedArr.length(); i++) {
+            Object o = parsedArr.get(i);
+            if (o == null) {
+                break;
+            }
+            parsedList.add(o);
+        }
+        this.parsedList = parsedList;
     }
 
     @TearDown
@@ -145,9 +164,20 @@ public class SeparateStepsBenchmark {
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
-    public void process() throws Exception {
+    public void _process() throws Exception {
         AtomicReferenceArray<Object> parsedArr = this.parsedArr;
         process(parsedArr);
+
+        System.out.println("QueryCommand.showPriceForOrder = " + QueryCommand.showPriceForOrder / QueryCommand.showPriceForOrderCounter);
+        System.out.println("QueryCommand.showPriceForSize = " + QueryCommand.showPriceForSize / QueryCommand.showPriceForSizeCounter);
+        System.out.println("CancelCommand.time = " + CancelCommand.time / CancelCommand.counter);
+        System.out.println("OrderCommand.time = " + OrderCommand.time / OrderCommand.counter);
+        HeapContainer.showStats();
+
+        QueryCommand.reset();
+        CancelCommand.reset();
+        OrderCommand.reset();
+        HeapContainer.reset();
     }
 
     @Benchmark
@@ -161,7 +191,7 @@ public class SeparateStepsBenchmark {
 
         parseFuture.get();
 
-        checkEquality();
+//        checkEquality();
     }
 
     static class T {
@@ -185,7 +215,38 @@ public class SeparateStepsBenchmark {
         Future<Object> parseFuture = doParse();
         parseFuture.get();
         processFuture.get();
-        checkEquality();
+//        checkEquality();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void parseAndProcessFromDifferentSourcesWithoutAtomicReferenceArray() throws Exception {
+        Future<?> parseFuture = executor.submit(() -> {
+            List<Object> parsedArr = new ArrayList<>(readList.size());
+            for (String s : readList) {
+                parsedArr.add(ParseJob.doParse(s));
+            }
+            parsedArr.add(ParseJob.PARSE_END);
+            return parsedArr;
+        });
+
+        Future<?> processFuture = executor.submit(() -> {
+            CommandFactory factory = new CommandFactory(
+                    new Prices(10_001),
+                    new HeapContainer<>(BUYERS_COMPARATOR, size),
+                    new HeapContainer<>(SELLER_COMPARATOR, size)
+            );
+            for (Object o : parsedList) {
+                if (o == ParseJob.PARSE_END) {
+                    break;
+                }
+                factory.createCommand(o).run();
+            }
+        });
+
+        parseFuture.get();
+        processFuture.get();
+//        checkEquality();
     }
 
     private void process(final AtomicReferenceArray<Object> parsedArr) {
@@ -197,6 +258,7 @@ public class SeparateStepsBenchmark {
 
         int     position = 0;
         boolean run      = true;
+        long    start    = System.nanoTime();
         while (run) {
             Object e;
             while ((e = parsedArr.get(position)) != null) {
@@ -209,6 +271,8 @@ public class SeparateStepsBenchmark {
             }
             Thread.yield();
         }
+        long processTime = System.nanoTime() - start;
+//        System.out.println("processTime = " + TimeUnit.NANOSECONDS.toMillis(processTime));
     }
 
     public static List<String> l = new ArrayList<>(1_000_000);

@@ -45,7 +45,7 @@ public class ParseJob {
         });
     }
 
-    private Object doParse(final String s) {
+    public static Object doParse(final String s) {
         Object res   = null;
         char   sType = s.charAt(0);
         if (sType == 'o') {
@@ -59,7 +59,7 @@ public class ParseJob {
         return res;
     }
 
-    private <T extends OrderActor> T processOrder(final String s) {
+    private static <T extends OrderActor> T processOrder(final String s) {
         int  endIdIdx  = s.indexOf(',', 2);
         char orderType = s.charAt(endIdIdx + 1);
         if (orderType == 's') {
@@ -69,7 +69,7 @@ public class ParseJob {
         }
     }
 
-    private <T extends OrderActor> T parse(
+    private static <T extends OrderActor> T parse(
             final String s,
             final int endIdIdx,
             Ctor ctor
