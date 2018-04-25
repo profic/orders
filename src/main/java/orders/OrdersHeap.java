@@ -79,6 +79,13 @@ public class OrdersHeap<E extends OrderActor> {
         indices[id] = -1;
     }
 
+    private E removeAndReturn(int idx, int id) {
+        Object res = queue[idx];
+        queue[idx] = null;
+        indices[id] = -1;
+        return (E) res;
+    }
+
     private void set(int idx, E el) {
         queue[idx] = el;
         indices[el.id()] = idx;
@@ -88,26 +95,31 @@ public class OrdersHeap<E extends OrderActor> {
     private E removeAt(int idx, int id) {
         int size = --this.size;
         if (size == idx) {
-            remove(idx, id);
+            return removeAndReturn(idx, id);
         } else {
             E moved = (E) queue[size];
-            remove(size, id);
+            E res   = removeAndReturn(size, id);
             siftDown(idx, moved);
             if (queue[idx] == moved) {
                 siftUp(idx, moved, false);
-                if (queue[idx] != moved) {
-                    return moved;
-                }
+//                if (queue[idx] != moved) {
+//                    return moved;
+//                }
             }
+            return res;
         }
-        return null;
     }
 
-    public void removeById(int id) {
+    public E removeById(int id) {
         int idx = indices[id];
         if (idx != -1) {
-            removeAt(idx, id);
+            E res = removeAt(idx, id);
+            if (res.id() != id) {
+                throw new IllegalStateException();
+            }
+            return res;
         }
+        return null;
     }
 
     @SuppressWarnings("unchecked")

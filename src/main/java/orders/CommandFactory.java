@@ -19,7 +19,7 @@ public class CommandFactory {
     public Runnable createCommand(Object e) {
         Runnable command;
         if (isCancelOrder(e)) {
-            command = new CancelCommand(buyers, sellers, (Integer) e);
+            command = new CancelCommand(buyers, sellers, (Integer) e, prices);
         } else if (isQuery(e)) {
             command = new QueryCommand(buyers, sellers, (String) e, prices);
         } else {

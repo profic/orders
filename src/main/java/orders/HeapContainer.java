@@ -40,14 +40,16 @@ public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
         return isEmpty() ? null : heap.first();
     }
 
-    @Override public void removeById(int id) {
+    @Override public T removeById(int id) {
         if (!isEmpty()) {
             long start = System.nanoTime();
-            heap.removeById(id);
+            T    res     = heap.removeById(id);
             long total = System.nanoTime() - start;
             removeCounter++;
             removeTime += total;
+            return res;
         }
+        return null;
     }
 
     @Override public void remove(T el) {

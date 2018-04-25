@@ -7,7 +7,7 @@ public interface OrdersContainer<T extends OrderActor> {
 
     T first();
 
-    void removeById(int id);
+    T removeById(int id);
 
     void remove(T el);
 

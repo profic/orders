@@ -37,6 +37,7 @@ public class OrdersProcessor {
         try {
 //            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
             OrdersProcessor o = new OrdersProcessor(executor, Utils.ORDERS_PATH);
+//            OrdersProcessor o = new OrdersProcessor(executor, "c:\\Users\\Uladzislau_Malchanau\\Desktop\\test_data.txt");
             o.run();
         } finally {
             executor.shutdown();

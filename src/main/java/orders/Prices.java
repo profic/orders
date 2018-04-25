@@ -13,6 +13,9 @@ public class Prices {
 
     public void decrease(int price, int count) {
         put(price, -count);
+        if (getPrice(price) < 0) {
+            System.out.println(price);
+        }
     }
 
     public int getPrice(int price) {

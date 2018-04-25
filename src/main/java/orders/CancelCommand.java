@@ -4,16 +4,18 @@ public class CancelCommand implements Runnable {
 
     private final OrdersContainer<Buyer>  buyers;
     private final OrdersContainer<Seller> sellers;
+    private final Prices                  prices;
     private final int                     id;
 
-    public static long time = 0;
+    public static long time    = 0;
     public static long counter = 0;
 
 
-    public CancelCommand(final OrdersContainer<Buyer> buyers, final OrdersContainer<Seller> sellers, final int id) {
+    public CancelCommand(final OrdersContainer<Buyer> buyers, final OrdersContainer<Seller> sellers, final int id, final Prices prices) {
         this.buyers = buyers;
         this.sellers = sellers;
         this.id = id;
+        this.prices = prices;
     }
 
     public static void reset() {
@@ -27,8 +29,13 @@ public class CancelCommand implements Runnable {
 
         long start = System.nanoTime();
 
-        sellers.removeById(id);
-        buyers.removeById(id);
+        OrderActor res = sellers.removeById(id);
+        if (res == null) {
+            res = buyers.removeById(id);
+        }
+        if (res != null) {
+            prices.decrease(res.price(), res.size());
+        }
 
         long totalTime = System.nanoTime() - start;
         time += totalTime;

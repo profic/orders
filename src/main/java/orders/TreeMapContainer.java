@@ -65,11 +65,12 @@ public class TreeMapContainer<T extends OrderActor> implements OrdersContainer<T
         }
     }
 
-    @Override public void removeById(final int id) {
+    @Override public T removeById(final int id) {
         T el = (T) elById[id];
         if (el != null) {
             remove(el);
         }
+        return el;
     }
 
 
