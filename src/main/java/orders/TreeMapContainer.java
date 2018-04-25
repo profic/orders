@@ -93,7 +93,7 @@ public class TreeMapContainer<T extends OrderActor> implements OrdersContainer<T
         removeTime += total;
     }
 
-    public static void showStats() {
+    public static void showStats() { // todo: remove
         System.out.println("addTime = " + addTime / addCounter);
         System.out.println("removeTime = " + removeTime / removeCounter);
         System.out.println("removeFirstTime = " + removeFirstTime / removeFirstCounter);

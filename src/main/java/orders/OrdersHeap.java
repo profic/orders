@@ -79,13 +79,6 @@ public class OrdersHeap<E extends OrderActor> {
         indices[id] = -1;
     }
 
-    private E removeAndReturn(int idx, int id) {
-        Object res = queue[idx];
-        queue[idx] = null;
-        indices[id] = -1;
-        return (E) res;
-    }
-
     private void set(int idx, E el) {
         queue[idx] = el;
         indices[el.id()] = idx;
@@ -94,11 +87,13 @@ public class OrdersHeap<E extends OrderActor> {
     @SuppressWarnings("unchecked")
     private E removeAt(int idx, int id) {
         int size = --this.size;
+        E res = (E) queue[idx];
         if (size == idx) {
-            return removeAndReturn(idx, id);
+            remove(idx, id);
+            return res;
         } else {
             E moved = (E) queue[size];
-            E res   = removeAndReturn(size, id);
+            remove(size, id);
             siftDown(idx, moved);
             if (queue[idx] == moved) {
                 siftUp(idx, moved, false);
@@ -113,6 +108,9 @@ public class OrdersHeap<E extends OrderActor> {
     public E removeById(int id) {
         int idx = indices[id];
         if (idx != -1) {
+            if (((E) queue[idx]).id() != id) {
+                throw new IllegalStateException();
+            }
             E res = removeAt(idx, id);
             if (res.id() != id) {
                 throw new IllegalStateException();
@@ -120,6 +118,17 @@ public class OrdersHeap<E extends OrderActor> {
             return res;
         }
         return null;
+    }
+
+    private void checkIndices() {
+        for (int i = 0; i < queue.length; i++) {
+            Object o = queue[i];
+            if (o != null) {
+                if (indices[((E) o).id()] != i) {
+                    throw new IllegalStateException();
+                }
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
