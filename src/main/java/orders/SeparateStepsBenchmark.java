@@ -9,11 +9,11 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import static java.util.stream.Collectors.joining;
@@ -172,12 +172,14 @@ public class SeparateStepsBenchmark {
         System.out.println("QueryCommand.showPriceForSize = " + QueryCommand.showPriceForSize / QueryCommand.showPriceForSizeCounter);
         System.out.println("CancelCommand.time = " + CancelCommand.time / CancelCommand.counter);
         System.out.println("OrderCommand.time = " + OrderCommand.time / OrderCommand.counter);
-        HeapContainer.showStats();
+//        HeapContainer.showStats();
+        TreeMapContainer.showStats();
 
         QueryCommand.reset();
         CancelCommand.reset();
         OrderCommand.reset();
-        HeapContainer.reset();
+//        HeapContainer.reset();
+        TreeMapContainer.reset();
     }
 
     @Benchmark
@@ -231,11 +233,7 @@ public class SeparateStepsBenchmark {
         });
 
         Future<?> processFuture = executor.submit(() -> {
-            CommandFactory factory = new CommandFactory(
-                    new Prices(10_001),
-                    new HeapContainer<>(BUYERS_COMPARATOR, size),
-                    new HeapContainer<>(SELLER_COMPARATOR, size)
-            );
+            CommandFactory factory = getHeapFactory();
             for (Object o : parsedList) {
                 if (o == ParseJob.PARSE_END) {
                     break;
@@ -250,11 +248,8 @@ public class SeparateStepsBenchmark {
     }
 
     private void process(final AtomicReferenceArray<Object> parsedArr) {
-        CommandFactory factory = new CommandFactory(
-                new Prices(10_001),
-                new HeapContainer<>(BUYERS_COMPARATOR, size),
-                new HeapContainer<>(SELLER_COMPARATOR, size)
-        );
+//        CommandFactory factory = getHeapFactory();
+        CommandFactory factory = getTreeFactory();
 
         int     position = 0;
         boolean run      = true;
@@ -273,6 +268,23 @@ public class SeparateStepsBenchmark {
         }
         long processTime = System.nanoTime() - start;
 //        System.out.println("processTime = " + TimeUnit.NANOSECONDS.toMillis(processTime));
+    }
+
+    private CommandFactory getHeapFactory() {
+        return new CommandFactory(
+                new Prices(10_001),
+                new HeapContainer<>(BUYERS_COMPARATOR, size),
+                new HeapContainer<>(SELLER_COMPARATOR, size)
+        );
+    }
+
+
+    private CommandFactory getTreeFactory() {
+        return new CommandFactory(
+                new Prices(10_001),
+                new TreeMapContainer<>(new TreeMap<>((o1, o2) -> Integer.compare(o2, o1)), size),
+                new TreeMapContainer<>(new TreeMap<>(), size)
+        );
     }
 
     public static List<String> l = new ArrayList<>(1_000_000);
