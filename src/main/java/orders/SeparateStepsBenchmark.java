@@ -19,7 +19,6 @@ import static java.util.stream.Collectors.joining;
 
 @State(Scope.Benchmark)
 public class SeparateStepsBenchmark {
-    public static final Comparator<Seller>           SELLER_COMPARATOR = Comparator.comparingInt(Seller::price);
     private             AtomicReferenceArray<String> readArr;
     private             AtomicReferenceArray<Object> parsedArr;
     private             List<Object>                 parsedList;
@@ -292,23 +291,19 @@ public class SeparateStepsBenchmark {
     private CommandFactory getHeapFactory() {
         return new CommandFactory(
                 new Prices(10_001),
-                new HeapContainer<>(BUYERS_COMPARATOR, size),
-                new HeapContainer<>(SELLER_COMPARATOR, size)
+                HeapContainer.forSeller(size),
+                HeapContainer.forBuyer(size)
         );
     }
 
 
-    private CommandFactory getTreeFactory() {
-        return new CommandFactory(
-                new Prices(10_001),
-                new TreeMapContainer<>(new TreeMap<>((o1, o2) -> Integer.compare(o2, o1)), size),
-                new TreeMapContainer<>(new TreeMap<>(), size)
-        );
-    }
+//    private CommandFactory getTreeFactory() {
+//        return new CommandFactory(
+//                new Prices(10_001),
+//                new TreeMapContainer<>(new TreeMap<>((o1, o2) -> Integer.compare(o2, o1)), size),
+//                new TreeMapContainer<>(new TreeMap<>(), size)
+//        );
+//    }
 
     public static List<String> l = new ArrayList<>(1_000_000);
-
-    private static final Comparator<Buyer> BUYERS_COMPARATOR = Comparator.comparingInt(Buyer::price).reversed();
-
-
 }

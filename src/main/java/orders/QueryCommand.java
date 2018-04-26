@@ -2,8 +2,8 @@ package orders;
 
 public class QueryCommand implements Runnable {
 
-    private final OrdersContainer<Buyer>  buyers;
-    private final OrdersContainer<Seller> sellers;
+    private final Heap<Buyer>  buyers;
+    private final Heap<Seller> sellers;
     private final String                  query;
     private final Prices                  prices;
 
@@ -11,8 +11,8 @@ public class QueryCommand implements Runnable {
     public static StopWatch showPriceForSizeSw  = new StopWatch();
 
     public QueryCommand(
-            final OrdersContainer<Buyer> buyers,
-            final OrdersContainer<Seller> sellers,
+            final Heap<Buyer> buyers,
+            final Heap<Seller> sellers,
             final String query,
             final Prices prices
     ) {
@@ -70,8 +70,8 @@ public class QueryCommand implements Runnable {
 
     // todo: cleanup
     private void print(Object o) {
-//        if (false == true) {
-        if (true) {
+        if (false == true) {
+//        if (true) {
             System.out.println(o);
         }
     }

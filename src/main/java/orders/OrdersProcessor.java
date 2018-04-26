@@ -2,7 +2,6 @@ package orders;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,11 +13,9 @@ public class OrdersProcessor {
     private static final int PRICES_COUNT = 10_000;
     private static final int IDS_COUNT    = 1_000_000 + 1;
 
-    private final Comparator<Buyer> BUYERS_COMPARATOR = Comparator.comparingInt(Buyer::price).reversed();
-
-    private final Prices                  prices  = new Prices(PRICES_COUNT);
-    private final OrdersContainer<Buyer>  buyers  = new HeapContainer<>(BUYERS_COMPARATOR, IDS_COUNT);
-    private final OrdersContainer<Seller> sellers = new HeapContainer<>(Comparator.comparingInt(Seller::price), IDS_COUNT);
+    private final Prices       prices  = new Prices(PRICES_COUNT);
+    private final Heap<Buyer>  buyers  = HeapContainer.forBuyer(IDS_COUNT);
+    private final Heap<Seller> sellers = HeapContainer.forSeller(IDS_COUNT);
 
     private final CommandFactory factory = new CommandFactory(
             prices, buyers, sellers

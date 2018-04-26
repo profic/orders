@@ -3,13 +3,13 @@ package orders;
 public class CommandFactory {
 
     private final Prices                  prices;
-    private final OrdersContainer<Buyer>  buyers;
-    private final OrdersContainer<Seller> sellers;
+    private final Heap<Buyer>  buyers;
+    private final Heap<Seller> sellers;
 
     public CommandFactory(
             final Prices prices,
-            final OrdersContainer<Buyer> buyers,
-            final OrdersContainer<Seller> sellers) {
+            final Heap<Buyer> buyers,
+            final Heap<Seller> sellers) {
 
         this.prices = prices;
         this.buyers = buyers;

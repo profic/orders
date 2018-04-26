@@ -1,5 +1,6 @@
 package orders;
 
+
 import java.util.Comparator;
 
 public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
@@ -9,22 +10,27 @@ public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
     public static StopWatch removeSw      = new StopWatch();
     public static StopWatch removeFirstSw = new StopWatch();
 
-    public HeapContainer(Comparator<T> cmp, int capacity) {
-        this.heap = new OrdersHeapIntKey<>(capacity + 1, cmp);
-
-        try {
-            cmp(cmp, new Seller(-1, -1, -1), new Seller(-1, -1, -1));
-//            this.heap = new OrdersHeapIntKeys<>(capacity + 1);
-        } catch (ClassCastException e) {
-            System.out.println("SELLER HEAP");
-//            this.heap = new OrdersMaxHeapIntKeys<>(capacity + 1);
-        }
-
-
+    private HeapContainer(Comparator<T> cmp, int capacity) {
+//        try {
+//            cmp(cmp, new Seller(-1, -1, -1), new Seller(-1, -1, -1));
+//            this.heap = new OrdersHeapIntKey<>(capacity + 1, Integer::compare);
+//        } catch (ClassCastException e) {
+//            System.out.println("SELLER HEAP");
+//            this.heap = new OrdersHeapIntKey<>(capacity + 1, ((Comparator<Integer>) Integer::compare).reversed());
+//        }
 //        this.heap = new DaryHeap<>(capacity + 1, 4, cmp);
     }
 
-    public static  void cmp(Comparator cmp, Object o1, Object o2) {
+    public static <T extends OrderActor> Heap<T> forSeller(int capacity) {
+        return new OrdersHeapIntKey<>(capacity + 1, Integer::compare);
+    }
+
+    public static <T extends OrderActor> Heap<T> forBuyer(int capacity) {
+        return new OrdersHeapIntKey<>(capacity + 1, ((Comparator<Integer>) Integer::compare).reversed());
+    }
+
+
+    public static void cmp(Comparator cmp, Object o1, Object o2) {
         cmp.compare(o1, o2);
     }
 

@@ -2,16 +2,16 @@ package orders;
 
 public class OrderCommand implements Runnable {
 
-    private final OrdersContainer<Buyer>  buyers;
-    private final OrdersContainer<Seller> sellers;
+    private final Heap<Buyer>  buyers;
+    private final Heap<Seller> sellers;
     private final OrderActor              order;
     private final Prices                  prices;
 
     public static StopWatch sw = new StopWatch();
 
     public OrderCommand(
-            final OrdersContainer<Buyer> buyers,
-            final OrdersContainer<Seller> sellers,
+            final Heap<Buyer> buyers,
+            final Heap<Seller> sellers,
             final OrderActor order,
             final Prices prices) {
         this.buyers = buyers;
@@ -39,7 +39,7 @@ public class OrderCommand implements Runnable {
     }
 
     private void sell(final Seller seller) {
-        OrdersContainer<Buyer> buyers = this.buyers;
+        Heap<Buyer> buyers = this.buyers;
 
         Buyer buyer = buyers.first();
         while (buyer != null && seller.hasItems() && buyer.price() >= seller.price()) {
@@ -69,7 +69,7 @@ public class OrderCommand implements Runnable {
     }
 
     private void buy(final Buyer buyer) {
-        OrdersContainer<Seller> sellers = this.sellers;
+        Heap<Seller> sellers = this.sellers;
 
         Seller seller = sellers.first();
         while (seller != null && seller.price() <= buyer.price() && buyer.hasItems()) {
