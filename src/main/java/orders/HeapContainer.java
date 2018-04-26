@@ -22,11 +22,11 @@ public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
     }
 
     public static <T extends OrderActor> Heap<T> forSeller(int capacity) {
-        return new OrdersHeapIntKey<>(capacity + 1, Integer::compare);
+        return new OrdersMinHeapIntKey<>(capacity + 1);
     }
 
     public static <T extends OrderActor> Heap<T> forBuyer(int capacity) {
-        return new OrdersHeapIntKey<>(capacity + 1, ((Comparator<Integer>) Integer::compare).reversed());
+        return new OrdersMaxHeapIntKey<>(capacity + 1);
     }
 
 
