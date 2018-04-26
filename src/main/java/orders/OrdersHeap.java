@@ -106,22 +106,8 @@ public class OrdersHeap<E extends OrderActor> {
         int idx = indices[id];
         if (idx != -1) {
             return removeAt(idx, id);
-//            E res = (E) queue[idx];
-//            res.cancelled = true;
-//            return res;
         }
         return null;
-    }
-
-    private void checkIndices() {
-        for (int i = 0; i < queue.length; i++) {
-            Object o = queue[i];
-            if (o != null) {
-                if (indices[((E) o).id()] != i) {
-                    throw new IllegalStateException();
-                }
-            }
-        }
     }
 
     @SuppressWarnings("unchecked")

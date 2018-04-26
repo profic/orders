@@ -7,9 +7,6 @@ public class QueryCommand implements Runnable {
     private final String                  query;
     private final Prices                  prices;
 
-    public static StopWatch showPriceForOrderSw = new StopWatch();
-    public static StopWatch showPriceForSizeSw  = new StopWatch();
-
     public QueryCommand(
             final OrdersContainer<Buyer> buyers,
             final OrdersContainer<Seller> sellers,
@@ -23,29 +20,20 @@ public class QueryCommand implements Runnable {
     }
 
     private void showPrice(final String s) {
-//        showPriceForSizeSw.start();
         int priceBeginIdx = s.lastIndexOf(',') + 1;
 
         int price = Utils.parseInt(s, priceBeginIdx, s.length());
-        int res = prices.getPrice(price);
-        print(res);
-//        showPriceForSizeSw.stop();
-    }
-
-    public static void reset() {
-        showPriceForOrderSw = new StopWatch();
-        showPriceForSizeSw = new StopWatch();
+        int res   = prices.getPrice(price);
+        System.out.println((Object) res);
     }
 
     private void showPrice(OrderActor entry) {
-//        showPriceForOrderSw.start();
         if (entry == null) {
-            print("empty");
+            System.out.println((Object) "empty");
         } else {
             int price = entry.price();
-            print(price + "," + prices.getPrice(price));
+            System.out.println((Object) (price + "," + prices.getPrice(price)));
         }
-//        showPriceForOrderSw.stop();
     }
 
 
@@ -68,11 +56,4 @@ public class QueryCommand implements Runnable {
         }
     }
 
-    // todo: cleanup
-    private void print(Object o) {
-        if (false == true) {
-//        if (true) {
-            System.out.println(o);
-        }
-    }
 }

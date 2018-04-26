@@ -1,6 +1,6 @@
 package orders;
 
-public enum Ctor {
+public enum ActorFactory {
 
     BUYER {
         @Override public Buyer create(final int id, final int size, final int price) {

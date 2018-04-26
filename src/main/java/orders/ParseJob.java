@@ -2,7 +2,6 @@ package orders;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class ParseJob {
@@ -18,10 +17,8 @@ public class ParseJob {
     }
 
 
-    public Future<Object> parse(CheckedRunnable beforeRun, final AtomicReferenceArray<String> readArr) {
+    public Future<Object> parse(final AtomicReferenceArray<String> readArr) {
         return executor.submit(() -> {
-            beforeRun.run();
-            long                         start     = System.nanoTime();
             int                          position  = 0;
             boolean                      run       = true;
             AtomicReferenceArray<Object> parsedArr = this.parsedArr;
@@ -38,9 +35,6 @@ public class ParseJob {
                 Thread.yield();
             }
             parsedArr.set(position, PARSE_END);
-            long processTime = System.nanoTime() - start;
-//            System.out.println("processTime parse ns = " + processTime);
-//            System.out.println("processTime parse ms = " + TimeUnit.NANOSECONDS.toMillis(processTime));
             return null;
         });
     }
@@ -63,16 +57,16 @@ public class ParseJob {
         int  endIdIdx  = s.indexOf(',', 2);
         char orderType = s.charAt(endIdIdx + 1);
         if (orderType == 's') {
-            return parse(s, endIdIdx, Ctor.SELLER);
+            return parse(s, endIdIdx, ActorFactory.SELLER);
         } else {
-            return parse(s, endIdIdx, Ctor.BUYER);
+            return parse(s, endIdIdx, ActorFactory.BUYER);
         }
     }
 
     private static <T extends OrderActor> T parse(
             final String s,
             final int endIdIdx,
-            Ctor ctor
+            ActorFactory actorFactory
     ) {
         int len           = s.length();
         int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
@@ -86,7 +80,7 @@ public class ParseJob {
         int price = Utils.parseInt(s, beginPriceIdx, endPriceIdx);
         int size  = Utils.parseInt(s, beginSizeIdx, endSizeIdx);
 
-        return (T) ctor.create(id, size, price);
+        return (T) actorFactory.create(id, size, price);
     }
 
     public AtomicReferenceArray<Object> getParsedArr() {

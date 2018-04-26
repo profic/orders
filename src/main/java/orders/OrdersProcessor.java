@@ -3,7 +3,6 @@ package orders;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -35,9 +34,7 @@ public class OrdersProcessor {
     public static void main(String[] args) throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
-//            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
-            OrdersProcessor o = new OrdersProcessor(executor, Utils.ORDERS_PATH);
-//            OrdersProcessor o = new OrdersProcessor(executor, "c:\\Users\\Uladzislau_Malchanau\\Desktop\\test_data.txt");
+            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
             o.run();
         } finally {
             executor.shutdown();
@@ -45,26 +42,19 @@ public class OrdersProcessor {
     }
 
     public void run() throws Exception {
-        CountDownLatch readLatch  = new CountDownLatch(1);
-        CountDownLatch parseLatch = new CountDownLatch(1);
-
         ReadJob  readJob  = new ReadJob(IDS_COUNT + 1, path, executor);
         ParseJob parseJob = new ParseJob(executor, IDS_COUNT + 1);
 
-        Future<?> readFuture = readJob.read(readLatch::countDown);
-        Future<Object> parseFuture = parseJob.parse(() -> {
-            readLatch.await();
-            parseLatch.countDown();
-        }, readJob.getReadArr());
+        Future<?>      readFuture  = readJob.read();
+        Future<Object> parseFuture = parseJob.parse(readJob.getReadArr());
 
-        process(parseLatch, parseJob.getParsedArr());
+        process(parseJob.getParsedArr());
 
         readFuture.get();
         parseFuture.get();
     }
 
-    private void process(final CountDownLatch parseLatch, final AtomicReferenceArray<Object> parsedArr) throws Exception {
-        parseLatch.await();
+    private void process(final AtomicReferenceArray<Object> parsedArr) {
         int     position = 0;
         boolean run      = true;
         while (run) {

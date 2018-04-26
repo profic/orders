@@ -8,12 +8,10 @@ public class Prices {
     }
 
     public void increase(int price, int count) {
-//        System.out.println("increase: price = " + price + ", count = " + count);
         put(price, count);
     }
 
     public void decrease(int price, int count) {
-//        System.out.println("decrease: price = " + price + ", count = " + count);
         put(price, -count);
     }
 
@@ -22,9 +20,6 @@ public class Prices {
     }
 
     private void put(final int price, final int count) {
-//        if (price == 649) {
-//            System.out.println();
-//        }
         prices[idx(price)] += count;
     }
 

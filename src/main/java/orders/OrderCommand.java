@@ -7,8 +7,6 @@ public class OrderCommand implements Runnable {
     private final OrderActor              order;
     private final Prices                  prices;
 
-    public static StopWatch sw = new StopWatch();
-
     public OrderCommand(
             final OrdersContainer<Buyer> buyers,
             final OrdersContainer<Seller> sellers,
@@ -22,20 +20,12 @@ public class OrderCommand implements Runnable {
 
     @Override
     public void run() {
-//        sw.start();
-
         OrderActor order = this.order;
         if (order instanceof Buyer) {
             buy((Buyer) order);
         } else {
             sell((Seller) order);
         }
-
-//        sw.stop();
-    }
-
-    public static void reset() {
-        sw = new StopWatch();
     }
 
     private void sell(final Seller seller) {
@@ -59,8 +49,6 @@ public class OrderCommand implements Runnable {
     private void buy(Buyer buyer, Seller seller, int decreasePrice) {
 
         int decreaseSize = Math.min(seller.size(), buyer.size());
-
-//        System.out.println("decreaseSize = " + decreaseSize + ", buyer = " + buyer + ", seller = " + seller);
 
         prices.decrease(decreasePrice, decreaseSize);
         int oldBuyerSize = buyer.size();

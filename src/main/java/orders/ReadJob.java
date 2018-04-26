@@ -23,9 +23,8 @@ public class ReadJob {
         this.executor = executor;
     }
 
-    public Future<?> read(final CheckedRunnable beforeExecution) {
+    public Future<?> read() {
         return executor.submit(() -> {
-            beforeExecution.run();
             int pos = 0;
             try (BufferedReader b = Files.newBufferedReader(path)) {
                 String line;

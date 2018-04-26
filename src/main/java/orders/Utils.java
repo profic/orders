@@ -2,8 +2,6 @@ package orders;
 
 public class Utils {
 
-    public static final String ORDERS_PATH = System.getenv("ORDERS_PATH"); // todo: remove
-
     private Utils() {
         throw new UnsupportedOperationException("No way.");
     }
