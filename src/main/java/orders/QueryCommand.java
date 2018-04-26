@@ -70,8 +70,8 @@ public class QueryCommand implements Runnable {
 
     // todo: cleanup
     private void print(Object o) {
-        if (false == true) {
-//        if (true) {
+//        if (false == true) {
+        if (true) {
             System.out.println(o);
         }
     }

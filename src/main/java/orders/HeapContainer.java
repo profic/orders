@@ -11,20 +11,21 @@ public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
 
     public HeapContainer(Comparator<T> cmp, int capacity) {
 //        this.heap = new OrdersHeap<>(capacity + 1, cmp);
-        this.heap = new DaryHeap<>(capacity + 1, 4, cmp);
+        this.heap = new OrdersHeapIntKeys<>(capacity + 1);
+//        this.heap = new DaryHeap<>(capacity + 1, 4, cmp);
     }
 
     @Override public void add(T el) {
-        addSw.start();
+//        addSw.start();
         heap.add(el);
-        addSw.stop();
+//        addSw.stop();
     }
 
     @Override public void removeFirst() {
         if (!isEmpty()) {
-            removeFirstSw.start();
+//            removeFirstSw.start();
             heap.removeFirst();
-            removeFirstSw.stop();
+//            removeFirstSw.stop();
         }
     }
 
@@ -39,9 +40,9 @@ public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
 
     @Override public T removeById(int id) {
         if (!isEmpty()) {
-            removeSw.start();
+//            removeSw.start();
             T res = heap.removeById(id);
-            removeSw.stop();
+//            removeSw.stop();
             return res;
         }
         return null;
@@ -54,9 +55,9 @@ public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
     }
 
     public static void reset() {
-        addSw = new StopWatch();
+//        addSw = new StopWatch();
         removeSw = new StopWatch();
-        removeFirstSw = new StopWatch();
+//        removeFirstSw = new StopWatch();
     }
 
     public static void showStats() {

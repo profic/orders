@@ -6,7 +6,6 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -180,7 +179,7 @@ public class SeparateStepsBenchmark {
 //        System.out.println("CancelCommand.time = " + CancelCommand.sw.getTime());
 //        System.out.println("OrderCommand.time = " + OrderCommand.sw.getTime());
 
-        HeapContainer.showStats();
+//        HeapContainer.showStats();
 
 //        QueryCommand.reset();
 //        CancelCommand.reset();
