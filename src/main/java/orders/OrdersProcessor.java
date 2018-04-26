@@ -34,6 +34,7 @@ public class OrdersProcessor {
 
     public static void main(String[] args) throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(2);
+
         try {
 //            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
             OrdersProcessor o = new OrdersProcessor(executor, Utils.ORDERS_PATH);

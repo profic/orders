@@ -9,7 +9,7 @@ public interface Heap<E> {
 
     int size();
 
-    @SuppressWarnings("unchecked") E removeFirst();
+    E removeFirst();
 
     E removeById(int id);
 

@@ -48,7 +48,8 @@ public interface IntegerObjectHeap<V> {
    * @param val Value
    * @param k Desired maximum size
    */
-  void add(int key, V val, int k);
+  void
+  add(int key, V val, int k);
 
   /**
    * Combined operation that removes the top element, and inserts a new element instead.

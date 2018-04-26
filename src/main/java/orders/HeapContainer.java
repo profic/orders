@@ -3,16 +3,29 @@ package orders;
 import java.util.Comparator;
 
 public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
-    private final Heap<T> heap;
+    private Heap<T> heap;
 
     public static StopWatch addSw         = new StopWatch();
     public static StopWatch removeSw      = new StopWatch();
     public static StopWatch removeFirstSw = new StopWatch();
 
     public HeapContainer(Comparator<T> cmp, int capacity) {
-//        this.heap = new OrdersHeap<>(capacity + 1, cmp);
-        this.heap = new OrdersHeapIntKeys<>(capacity + 1);
+        this.heap = new OrdersHeapIntKey<>(capacity + 1, cmp);
+
+        try {
+            cmp(cmp, new Seller(-1, -1, -1), new Seller(-1, -1, -1));
+//            this.heap = new OrdersHeapIntKeys<>(capacity + 1);
+        } catch (ClassCastException e) {
+            System.out.println("SELLER HEAP");
+//            this.heap = new OrdersMaxHeapIntKeys<>(capacity + 1);
+        }
+
+
 //        this.heap = new DaryHeap<>(capacity + 1, 4, cmp);
+    }
+
+    public static  void cmp(Comparator cmp, Object o1, Object o2) {
+        cmp.compare(o1, o2);
     }
 
     @Override public void add(T el) {
