@@ -28,7 +28,12 @@ public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
     }
 
     @Override public T first() {
-        return isEmpty() ? null : heap.first();
+        T first = heap.first();
+//        while (first != null && first.cancelled) {
+//            heap.removeFirst();
+//            first = heap.first();
+//        }
+        return first;
     }
 
     @Override public T removeById(int id) {
@@ -54,9 +59,13 @@ public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
     }
 
     public static void showStats() {
-        System.out.println("addTime = " + addSw.getAvg());
-        System.out.println("removeTime = " + removeSw.getAvg());
-        System.out.println("removeFirstTime = " + removeFirstSw.getAvg());
+//        System.out.println("addTime = " + addSw.getAvg());
+//        System.out.println("removeTime = " + removeSw.getAvg());
+//        System.out.println("removeFirstTime = " + removeFirstSw.getAvg());
+
+        System.out.println("addTime = " + addSw.getTime());
+        System.out.println("removeTime = " + removeSw.getTime());
+        System.out.println("removeFirstTime = " + removeFirstSw.getTime());
     }
 
     @Override public boolean isEmpty() {

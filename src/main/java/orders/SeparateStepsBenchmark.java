@@ -143,7 +143,7 @@ public class SeparateStepsBenchmark {
 
     static {
         try {
-            eq = Files.readAllLines(Paths.get("C:\\Projects\\orders\\tree.txt"));
+//            eq = Files.readAllLines(Paths.get("C:\\Projects\\orders\\tree.txt"));
         } catch (Exception e1) {
             throw new RuntimeException(e1);
         }
@@ -170,15 +170,21 @@ public class SeparateStepsBenchmark {
         process(parsedArr);
 
 
-        System.out.println("QueryCommand.showPriceForOrder = " + QueryCommand.showPriceForOrderSw.getAvg());
-        System.out.println("QueryCommand.showPriceForSize = " + QueryCommand.showPriceForSizeSw.getAvg());
-        System.out.println("CancelCommand.time = " + CancelCommand.sw.getAvg());
-        System.out.println("OrderCommand.time = " + OrderCommand.sw.getAvg());
+//        System.out.println("QueryCommand.showPriceForOrder = " + QueryCommand.showPriceForOrderSw.getAvg());
+//        System.out.println("QueryCommand.showPriceForSize = " + QueryCommand.showPriceForSizeSw.getAvg());
+//        System.out.println("CancelCommand.time = " + CancelCommand.sw.getAvg());
+//        System.out.println("OrderCommand.time = " + OrderCommand.sw.getAvg());
+
+//        System.out.println("QueryCommand.showPriceForOrder = " + QueryCommand.showPriceForOrderSw.getTime());
+//        System.out.println("QueryCommand.showPriceForSize = " + QueryCommand.showPriceForSizeSw.getTime());
+//        System.out.println("CancelCommand.time = " + CancelCommand.sw.getTime());
+//        System.out.println("OrderCommand.time = " + OrderCommand.sw.getTime());
+
         HeapContainer.showStats();
 
-        QueryCommand.reset();
-        CancelCommand.reset();
-        OrderCommand.reset();
+//        QueryCommand.reset();
+//        CancelCommand.reset();
+//        OrderCommand.reset();
         HeapContainer.reset();
     }
 

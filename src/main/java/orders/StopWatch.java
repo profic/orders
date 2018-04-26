@@ -1,5 +1,7 @@
 package orders;
 
+import java.util.concurrent.TimeUnit;
+
 public class StopWatch {
 
     private int  counter = 0;
@@ -8,6 +10,10 @@ public class StopWatch {
 
     public long getAvg() {
         return time / counter;
+    }
+
+    public long getTime() {
+        return TimeUnit.NANOSECONDS.toMillis(time);
     }
 
     public void start() {

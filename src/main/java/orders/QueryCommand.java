@@ -23,12 +23,13 @@ public class QueryCommand implements Runnable {
     }
 
     private void showPrice(final String s) {
-        showPriceForSizeSw.start();
+//        showPriceForSizeSw.start();
         int priceBeginIdx = s.lastIndexOf(',') + 1;
 
         int price = Utils.parseInt(s, priceBeginIdx, s.length());
-        print(prices.getPrice(price));
-        showPriceForSizeSw.stop();
+        int res = prices.getPrice(price);
+        print(res);
+//        showPriceForSizeSw.stop();
     }
 
     public static void reset() {
@@ -37,14 +38,14 @@ public class QueryCommand implements Runnable {
     }
 
     private void showPrice(OrderActor entry) {
-        showPriceForOrderSw.start();
+//        showPriceForOrderSw.start();
         if (entry == null) {
             print("empty");
         } else {
             int price = entry.price();
             print(price + "," + prices.getPrice(price));
         }
-        showPriceForOrderSw.stop();
+//        showPriceForOrderSw.stop();
     }
 
 
@@ -69,9 +70,8 @@ public class QueryCommand implements Runnable {
 
     // todo: cleanup
     private void print(Object o) {
-//        SeparateStepsBenchmark.l.add(o.toString());
-//        if (false == true) { // todo: remove
-        if (true) {
+        if (false == true) {
+//        if (true) {
             System.out.println(o);
         }
     }

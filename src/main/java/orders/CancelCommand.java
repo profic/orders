@@ -23,7 +23,7 @@ public class CancelCommand implements Runnable {
 
     @Override
     public void run() {
-        sw.start();
+//        sw.start();
 
         OrderActor res = sellers.removeById(id);
         if (res == null) {
@@ -33,6 +33,6 @@ public class CancelCommand implements Runnable {
             prices.decrease(res.price(), res.size());
         }
 
-        sw.stop();
+//        sw.stop();
     }
 }

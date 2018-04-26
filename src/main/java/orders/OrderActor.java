@@ -48,4 +48,12 @@ public abstract class OrderActor {
         return id;
     }
 
+    @Override public String toString() {
+        return getClass().getSimpleName() + "{" +
+                "id=" + id +
+                ", price=" + price +
+                ", cancelled=" + cancelled +
+                ", size=" + size +
+                '}';
+    }
 }

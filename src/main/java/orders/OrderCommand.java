@@ -22,7 +22,7 @@ public class OrderCommand implements Runnable {
 
     @Override
     public void run() {
-        sw.start();
+//        sw.start();
 
         OrderActor order = this.order;
         if (order instanceof Buyer) {
@@ -31,7 +31,7 @@ public class OrderCommand implements Runnable {
             sell((Seller) order);
         }
 
-        sw.stop();
+//        sw.stop();
     }
 
     public static void reset() {
@@ -43,12 +43,6 @@ public class OrderCommand implements Runnable {
 
         Buyer buyer = buyers.first();
         while (buyer != null && seller.hasItems() && buyer.price() >= seller.price()) {
-            if (buyer.cancelled) {
-                buyers.removeFirst();
-                buyer = buyers.first();
-                continue;
-            }
-
             buy(buyer, seller, buyer.price());
             if (!buyer.hasItems()) {
                 buyers.removeFirst();
@@ -63,7 +57,12 @@ public class OrderCommand implements Runnable {
     }
 
     private void buy(Buyer buyer, Seller seller, int decreasePrice) {
-        prices.decrease(decreasePrice, Math.min(seller.size(), buyer.size()));
+
+        int decreaseSize = Math.min(seller.size(), buyer.size());
+
+//        System.out.println("decreaseSize = " + decreaseSize + ", buyer = " + buyer + ", seller = " + seller);
+
+        prices.decrease(decreasePrice, decreaseSize);
         int oldBuyerSize = buyer.size();
         buyer.decreaseSize(seller.size());
         seller.decreaseSize(oldBuyerSize);
@@ -74,12 +73,6 @@ public class OrderCommand implements Runnable {
 
         Seller seller = sellers.first();
         while (seller != null && seller.price() <= buyer.price() && buyer.hasItems()) {
-            if (seller.cancelled) {
-                sellers.removeFirst();
-                seller = sellers.first();
-                continue;
-            }
-
             buy(buyer, seller, seller.price());
             if (!seller.hasItems()) {
                 sellers.removeFirst();

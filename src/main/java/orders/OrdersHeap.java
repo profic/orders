@@ -105,10 +105,10 @@ public class OrdersHeap<E extends OrderActor> {
     public E removeById(int id) {
         int idx = indices[id];
         if (idx != -1) {
-//            return removeAt(idx, id);
-            E res = (E) queue[idx];
-            res.cancelled = true;
-            return res;
+            return removeAt(idx, id);
+//            E res = (E) queue[idx];
+//            res.cancelled = true;
+//            return res;
         }
         return null;
     }
