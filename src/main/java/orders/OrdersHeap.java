@@ -2,7 +2,7 @@ package orders;
 
 import java.util.Comparator;
 
-public class OrdersHeap<E extends OrderActor> {
+public class OrdersHeap<E extends OrderActor> implements Heap<E> {
 
     private final Comparator<E> cmp;
     private final Object[]      queue;
@@ -24,7 +24,7 @@ public class OrdersHeap<E extends OrderActor> {
         }
     }
 
-    public boolean add(E el) {
+    @Override public void add(E el) {
         int idx = size;
         size = idx + 1;
         if (idx == 0) {
@@ -32,10 +32,9 @@ public class OrdersHeap<E extends OrderActor> {
         } else {
             siftUp(idx, el, true);
         }
-        return true;
     }
 
-    @SuppressWarnings("unchecked")
+    @Override @SuppressWarnings("unchecked")
     public E first() {
         return (size == 0) ? null : (E) queue[0];
     }
@@ -44,7 +43,7 @@ public class OrdersHeap<E extends OrderActor> {
         return indices[el.id()];
     }
 
-    public boolean remove(E el) {
+    @Override public boolean remove(E el) {
         int idx = indexOf(el);
         if (idx == -1)
             return false;
@@ -54,11 +53,11 @@ public class OrdersHeap<E extends OrderActor> {
         }
     }
 
-    public int size() {
+    @Override public int size() {
         return size;
     }
 
-    @SuppressWarnings("unchecked")
+    @Override @SuppressWarnings("unchecked")
     public E removeFirst() {
         if (size == 0) {
             return null;
@@ -102,7 +101,7 @@ public class OrdersHeap<E extends OrderActor> {
         }
     }
 
-    public E removeById(int id) {
+    @Override public E removeById(int id) {
         int idx = indices[id];
         if (idx != -1) {
             return removeAt(idx, id);
@@ -165,7 +164,7 @@ public class OrdersHeap<E extends OrderActor> {
         set(idx, el);
     }
 
-    public boolean isEmpty() {
+    @Override public boolean isEmpty() {
         return size == 0;
     }
 }

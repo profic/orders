@@ -3,14 +3,15 @@ package orders;
 import java.util.Comparator;
 
 public class HeapContainer<T extends OrderActor> implements OrdersContainer<T> {
-    private final OrdersHeap<T> heap;
+    private final Heap<T> heap;
 
     public static StopWatch addSw         = new StopWatch();
     public static StopWatch removeSw      = new StopWatch();
     public static StopWatch removeFirstSw = new StopWatch();
 
     public HeapContainer(Comparator<T> cmp, int capacity) {
-        this.heap = new OrdersHeap<>(capacity + 1, cmp);
+//        this.heap = new OrdersHeap<>(capacity + 1, cmp);
+        this.heap = new DaryHeap<>(capacity + 1, 4, cmp);
     }
 
     @Override public void add(T el) {
