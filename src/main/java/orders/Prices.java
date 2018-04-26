@@ -1,10 +1,13 @@
 package orders;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Prices {
-    private final int[] prices;
+    private final Map<Integer, Integer> prices;
 
     public Prices(final int size) {
-        prices = new int[size];
+        prices = new HashMap<>(size * 2, 2f);
     }
 
     public void increase(int price, int count) {
@@ -16,14 +19,10 @@ public class Prices {
     }
 
     public int getPrice(int price) {
-        return prices[idx(price)];
+        return prices.getOrDefault(price, 0);
     }
 
     private void put(final int price, final int count) {
-        prices[idx(price)] += count;
-    }
-
-    private int idx(final int price) {
-        return price % prices.length;
+        prices.compute(price, (k, v) -> v == null ? count : v + count);
     }
 }
