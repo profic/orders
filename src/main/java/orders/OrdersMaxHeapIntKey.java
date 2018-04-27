@@ -1,5 +1,8 @@
 package orders;
 
+/**
+ * The only reason to keep duplicates is because abstract class reduces performance.
+ */
 public class OrdersMaxHeapIntKey<E extends OrderActor> implements Heap<E> {
 
     private final int[]    queue;
@@ -33,7 +36,6 @@ public class OrdersMaxHeapIntKey<E extends OrderActor> implements Heap<E> {
 
     @Override @SuppressWarnings("unchecked")
     public E first() {
-//        return (size == 0) ? null : (E) queue[0];
         return (size == 0) ? null : (E) values[0];
     }
 
@@ -73,9 +75,9 @@ public class OrdersMaxHeapIntKey<E extends OrderActor> implements Heap<E> {
     }
 
     private void remove(int idx, int id) {
-        queue[idx] = 0; // todo: may be superfluous
-        indices[id] = -1; // todo: may be superfluous
-        values[idx] = null; // todo: may be superfluous
+        queue[idx] = 0;
+        indices[id] = -1;
+        values[idx] = null;
     }
 
     private void set(int idx, int el, E val) {
@@ -85,7 +87,7 @@ public class OrdersMaxHeapIntKey<E extends OrderActor> implements Heap<E> {
     }
 
     @SuppressWarnings("unchecked")
-    protected E removeAt(int idx, int id) {
+    private E removeAt(int idx, int id) {
         int size = --this.size;
         E   res  = (E) values[idx];
         if (size == idx) {
@@ -128,7 +130,7 @@ public class OrdersMaxHeapIntKey<E extends OrderActor> implements Heap<E> {
 
             idx = parentIdx;
         }
-        set(idx, el, val); // todo: maybe superfluous
+        set(idx, el, val);
     }
 
     @SuppressWarnings("unchecked")

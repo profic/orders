@@ -3,7 +3,6 @@ package orders;
 public abstract class OrderActor {
     private final int id;
     private final int price;
-    public boolean cancelled = false;
 
     private int size;
 
@@ -52,7 +51,6 @@ public abstract class OrderActor {
         return getClass().getSimpleName() + "{" +
                 "id=" + id +
                 ", price=" + price +
-                ", cancelled=" + cancelled +
                 ", size=" + size +
                 '}';
     }

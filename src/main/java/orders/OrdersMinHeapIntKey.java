@@ -1,5 +1,8 @@
 package orders;
 
+/**
+ * The only reason to keep duplicates is because abstract class reduces performance.
+ */
 public class OrdersMinHeapIntKey<E extends OrderActor> implements Heap<E> {
 
     private final int[]    queue;
@@ -34,7 +37,6 @@ public class OrdersMinHeapIntKey<E extends OrderActor> implements Heap<E> {
 
     @Override @SuppressWarnings("unchecked")
     public E first() {
-//        return (size == 0) ? null : (E) queue[0];
         return (size == 0) ? null : (E) values[0];
     }
 
@@ -74,9 +76,9 @@ public class OrdersMinHeapIntKey<E extends OrderActor> implements Heap<E> {
     }
 
     private void remove(int idx, int id) {
-        queue[idx] = 0; // todo: may be superfluous
-        indices[id] = -1; // todo: may be superfluous
-        values[idx] = null; // todo: may be superfluous
+        queue[idx] = 0;
+        indices[id] = -1;
+        values[idx] = null;
     }
 
     private void set(int idx, int el, E val) {
@@ -108,22 +110,8 @@ public class OrdersMinHeapIntKey<E extends OrderActor> implements Heap<E> {
         int idx = indices[id];
         if (idx != -1) {
             return removeAt(idx, id);
-//            E res = (E) queue[idx];
-//            res.cancelled = true;
-//            return res;
         }
         return null;
-    }
-
-    private void checkIndices() {
-        for (int i = 0; i < queue.length; i++) {
-            Object o = queue[i];
-            if (o != null) {
-                if (indices[((E) o).id()] != i) {
-                    throw new IllegalStateException();
-                }
-            }
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -143,7 +131,7 @@ public class OrdersMinHeapIntKey<E extends OrderActor> implements Heap<E> {
 
             idx = parentIdx;
         }
-        set(idx, el, val); // todo: maybe superfluous
+        set(idx, el, val);
     }
 
     @SuppressWarnings("unchecked")
@@ -159,7 +147,6 @@ public class OrdersMinHeapIntKey<E extends OrderActor> implements Heap<E> {
                 childIdx = rightIdx;
                 child = queue[childIdx];
             }
-//            if (cmp.compare(el, child) <= 0) {
             if (el <= child) {
                 break;
             }
