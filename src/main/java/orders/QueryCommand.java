@@ -1,59 +1,63 @@
 package orders;
 
+import java.util.Map;
+
 public class QueryCommand implements Runnable {
 
-    private final Heap<Buyer>  buyers;
-    private final Heap<Seller> sellers;
-    private final String       query;
-    private final Prices       prices;
+    private final OrdersContainer bids;
+    private final OrdersContainer asks;
+    private final String          query;
 
     public QueryCommand(
-            final Heap<Buyer> buyers,
-            final Heap<Seller> sellers,
-            final String query,
-            final Prices prices
+            final OrdersContainer bids,
+            final OrdersContainer asks,
+            final String query
     ) {
-        this.buyers = buyers;
-        this.sellers = sellers;
+        this.bids = bids;
+        this.asks = asks;
         this.query = query;
-        this.prices = prices;
-    }
-
-    private void showPrice(final String s) {
-        int priceBeginIdx = s.lastIndexOf(',') + 1;
-
-        int price = Utils.parseInt(s, priceBeginIdx, s.length());
-        int res   = prices.getPrice(price);
-        System.out.println((Object) res);
-    }
-
-
-    private void showPrice(OrderActor entry) {
-        if (entry == null) {
-            System.out.println((Object) "empty");
-        } else {
-            int price = entry.price();
-            System.out.println((Object) (price + "," + prices.getPrice(price)));
-        }
-    }
-
-
-    private boolean isSellerQuery(final String s) {
-        return s.charAt(3) == 'e';
-    }
-
-    private boolean isBuyerQuery(final String s) {
-        return s.charAt(2) == 'b';
     }
 
     @Override
     public void run() {
-        if (isBuyerQuery(query)) {
-            showPrice(buyers.first());
-        } else if (isSellerQuery(query)) {
-            showPrice(sellers.first());
+        /*
+        q,best_bid
+        q,best_ask
+        q,size,<price>
+         */
+        if (isBidQuery(query)) {
+            showPrice(bids.getFirst());
+        } else if (isAskQuery(query)) {
+            showPrice(asks.getFirst());
         } else {
             showPrice(query);
         }
+    }
+
+    private void showPrice(Map.Entry<Integer, Integer> e) {
+        if (e == null) {
+            System.out.println("empty");
+        } else {
+            System.out.println(e.getKey() + "," + e.getValue());
+        }
+    }
+
+    private void showPrice(final String s) {
+        int priceBeginIdx = s.lastIndexOf(',') + 1;
+        int price         = Utils.parseInt(s, priceBeginIdx, s.length());
+
+        int bidSize  = bids.getSize(price);
+        int askSize = asks.getSize(price);
+
+        System.out.println(bidSize + askSize);
+    }
+
+
+    private boolean isAskQuery(final String s) {
+        return s.charAt(7) == 'a';
+    }
+
+    private boolean isBidQuery(final String s) {
+        return s.charAt(7) == 'b';
     }
 }

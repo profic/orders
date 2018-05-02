@@ -2,6 +2,7 @@ package orders;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -9,16 +10,10 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class OrdersProcessor {
 
-    private static final int PRICES_COUNT = 10_000;
-    private static final int IDS_COUNT    = 1_000_000 + 1;
+    private static final int IDS_COUNT = 1_000_000 + 1;
 
-    private final Prices       prices  = new Prices(PRICES_COUNT);
-    private final Heap<Buyer>  buyers  = new OrdersMaxHeapIntKey<>(IDS_COUNT + 1);
-    private final Heap<Seller> sellers = new OrdersMinHeapIntKey<>(IDS_COUNT + 1);
-
-    private final CommandFactory factory = new CommandFactory(
-            prices, buyers, sellers
-    );
+    private final OrdersContainer bids = new OrdersContainer(((Comparator<Integer>) Integer::compare).reversed());
+    private final OrdersContainer asks = new OrdersContainer();
 
     private final ExecutorService executor;
     private final Path            path;
@@ -32,7 +27,8 @@ public class OrdersProcessor {
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
         try {
-            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
+//            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
+            OrdersProcessor o = new OrdersProcessor(executor, "C:\\Users\\Uladzislau_Malchanau\\Desktop\\data3.txt");
             o.run();
         } finally {
             executor.shutdown();
@@ -42,7 +38,7 @@ public class OrdersProcessor {
     public void run() throws Exception {
 
         ReadJob  readJob  = new ReadJob(IDS_COUNT + 1, path, executor);
-        ParseJob parseJob = new ParseJob(executor, IDS_COUNT + 1);
+        ParseJob parseJob = new ParseJob(executor, IDS_COUNT + 1, bids, asks);
 
         Future<?> readFuture  = readJob.read();
         Future<?> parseFuture = parseJob.parse(readJob.getReadArr());
@@ -53,17 +49,17 @@ public class OrdersProcessor {
         parseFuture.get();
     }
 
-    private void process(final AtomicReferenceArray<Object> parsedArr) {
+    private void process(final AtomicReferenceArray<Runnable> parsedArr) {
         int     position = 0;
         boolean run      = true;
         while (run) {
-            Object e;
+            Runnable e;
             while ((e = parsedArr.get(position)) != null) {
                 if (ParseJob.PARSE_END == e) {
                     run = false;
                     break;
                 }
-                factory.createCommand(e).run();
+                e.run();
                 position++;
             }
             Thread.yield();

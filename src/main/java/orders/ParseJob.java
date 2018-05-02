@@ -6,14 +6,23 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class ParseJob {
 
-    public static final Object PARSE_END = new Object();
+    public static final Runnable PARSE_END = () -> {};
 
-    private final ExecutorService              executor;
-    private final AtomicReferenceArray<Object> parsedArr;
+    private final ExecutorService                executor;
+    private final AtomicReferenceArray<Runnable> parsedArr;
+    private final OrdersContainer                bids;
+    private final OrdersContainer                asks;
 
-    public ParseJob(final ExecutorService executor, final int size) {
+    public ParseJob(
+            final ExecutorService executor,
+            final int size,
+            final OrdersContainer bids,
+            final OrdersContainer asks
+    ) {
         this.executor = executor;
         this.parsedArr = new AtomicReferenceArray<>(size);
+        this.bids = bids;
+        this.asks = asks;
     }
 
 
@@ -22,7 +31,7 @@ public class ParseJob {
             int     position = 0;
             boolean run      = true;
 
-            AtomicReferenceArray<Object> parsedArr = this.parsedArr;
+            AtomicReferenceArray<Runnable> parsedArr = this.parsedArr;
             while (run) {
                 String s;
                 while ((s = readArr.get(position)) != null) {
@@ -39,51 +48,69 @@ public class ParseJob {
         });
     }
 
-    private static Object doParse(final String s) {
-        Object res   = null;
-        char   sType = s.charAt(0);
+    private Runnable doParse(final String s) {
+        Runnable res   = null;
+        char     sType = s.charAt(0);
         if (sType == 'o') {
             res = processOrder(s);
-        } else if (sType == 'c') {
-            res = Utils.parseInt(s, 2, s.length());
+        } else if (sType == 'u') {
+            res = update(s);
         } else if (sType == 'q') {
-            res = s;
+            res = query(s);
         }
-
         return res;
     }
 
-    private static <T extends OrderActor> T processOrder(final String s) {
-        int  endIdIdx  = s.indexOf(',', 2);
-        char orderType = s.charAt(endIdIdx + 1);
+    private QueryCommand query(final String s) {
+        return new QueryCommand(bids, asks, s);
+    }
+
+    private Runnable update(final String s) {
+        int len = s.length();
+
+//        OrdersContainer orders = s.charAt(len - 1) == 'd' ? bids : asks;
+        OrdersContainer orders = s.charAt(len - 1) == 'd' ? bids : asks;
+
+        int priceStartIdx = 2;
+        int priceEndIdx   = s.indexOf(',', priceStartIdx + 1);
+        int sizeStartIdx  = priceEndIdx + 1;
+        int sizeEndIdx    = len - 4;
+
+        Integer price = Utils.parseInt(s, priceStartIdx, priceEndIdx);
+        Integer size  = Utils.parseInt(s, sizeStartIdx, sizeEndIdx);
+        return () -> orders.setSize(price, size);
+    }
+
+    private Runnable processOrder(final String s) {
+        char orderType = s.charAt(2);
         if (orderType == 's') {
-            return parse(s, endIdIdx, Ctor.SELLER);
+            return parse(s, bids);
         } else {
-            return parse(s, endIdIdx, Ctor.BUYER);
+            return parse(s, asks);
         }
     }
 
-    private static <T extends OrderActor> T parse(
+    private Runnable parse(
             final String s,
-            final int endIdIdx,
-            Ctor ctor
+            final OrdersContainer orders
     ) {
-        int len           = s.length();
-        int beginPriceIdx = s.indexOf(',', endIdIdx + 1) + 1;
-        int endPriceIdx   = s.lastIndexOf(',', len - 2);
+        int len         = s.length();
+        int endPriceIdx = s.lastIndexOf(',', len - 2);
 
-        int beginIdIdx   = 2;
         int endSizeIdx   = len;
         int beginSizeIdx = endPriceIdx + 1;
 
-        int id    = Utils.parseInt(s, beginIdIdx, endIdIdx);
-        int price = Utils.parseInt(s, beginPriceIdx, endPriceIdx);
-        int size  = Utils.parseInt(s, beginSizeIdx, endSizeIdx);
+        int size = Utils.parseInt(s, beginSizeIdx, endSizeIdx);
 
-        return (T) ctor.create(id, size, price);
+        return () -> {
+            int decreased;
+            for (int rest = size; rest != 0; rest -= decreased) {
+                decreased = orders.decreaseSizeAtFirstPrice(size);
+            }
+        };
     }
 
-    public AtomicReferenceArray<Object> getParsedArr() {
+    public AtomicReferenceArray<Runnable> getParsedArr() {
         return parsedArr;
     }
 }
