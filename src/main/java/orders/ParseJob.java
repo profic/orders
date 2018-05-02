@@ -1,7 +1,9 @@
 package orders;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class ParseJob {
@@ -9,7 +11,7 @@ public class ParseJob {
     public static final Runnable PARSE_END = () -> {};
 
     private final ExecutorService                executor;
-    private final AtomicReferenceArray<Runnable> parsedArr;
+    private final BlockingQueue<Runnable> parsedArr;
     private final OrdersContainer                bids;
     private final OrdersContainer                asks;
 
@@ -20,31 +22,29 @@ public class ParseJob {
             final OrdersContainer asks
     ) {
         this.executor = executor;
-        this.parsedArr = new AtomicReferenceArray<>(size);
+        this.parsedArr = new LinkedBlockingQueue<>(size);
         this.bids = bids;
         this.asks = asks;
     }
 
 
-    public Future<?> parse(final AtomicReferenceArray<String> readArr) {
+    public Future<?> parse(final BlockingQueue<String> readArr) {
         return executor.submit(() -> {
-            int     position = 0;
             boolean run      = true;
 
-            AtomicReferenceArray<Runnable> parsedArr = this.parsedArr;
+            BlockingQueue<Runnable> parsedArr = this.parsedArr;
             while (run) {
                 String s;
-                while ((s = readArr.get(position)) != null) {
+                while ((s = readArr.poll()) != null) {
                     if (ReadJob.END.equals(s)) {
                         run = false;
                         break;
                     }
-                    parsedArr.set(position, doParse(s));
-                    position++;
+                    parsedArr.add(doParse(s));
                 }
                 Thread.yield();
             }
-            parsedArr.set(position, PARSE_END);
+            parsedArr.add(PARSE_END);
         });
     }
 
@@ -68,7 +68,6 @@ public class ParseJob {
     private Runnable update(final String s) {
         int len = s.length();
 
-//        OrdersContainer orders = s.charAt(len - 1) == 'd' ? bids : asks;
         OrdersContainer orders = s.charAt(len - 1) == 'd' ? bids : asks;
 
         int priceStartIdx = 2;
@@ -110,7 +109,7 @@ public class ParseJob {
         };
     }
 
-    public AtomicReferenceArray<Runnable> getParsedArr() {
+    public BlockingQueue<Runnable> getParsedQueue() {
         return parsedArr;
     }
 }

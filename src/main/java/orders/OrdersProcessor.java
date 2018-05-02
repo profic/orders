@@ -3,10 +3,10 @@ package orders;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class OrdersProcessor {
 
@@ -27,8 +27,7 @@ public class OrdersProcessor {
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
         try {
-//            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
-            OrdersProcessor o = new OrdersProcessor(executor, "C:\\Users\\Uladzislau_Malchanau\\Desktop\\data3.txt");
+            OrdersProcessor o = new OrdersProcessor(executor, args[0]);
             o.run();
         } finally {
             executor.shutdown();
@@ -41,26 +40,24 @@ public class OrdersProcessor {
         ParseJob parseJob = new ParseJob(executor, IDS_COUNT + 1, bids, asks);
 
         Future<?> readFuture  = readJob.read();
-        Future<?> parseFuture = parseJob.parse(readJob.getReadArr());
+        Future<?> parseFuture = parseJob.parse(readJob.getReadQueue());
 
-        process(parseJob.getParsedArr());
+        process(parseJob.getParsedQueue());
 
         readFuture.get();
         parseFuture.get();
     }
 
-    private void process(final AtomicReferenceArray<Runnable> parsedArr) {
-        int     position = 0;
-        boolean run      = true;
+    private void process(final BlockingQueue<Runnable> parsedArr) {
+        boolean run = true;
         while (run) {
             Runnable e;
-            while ((e = parsedArr.get(position)) != null) {
+            while ((e = parsedArr.poll()) != null) {
                 if (ParseJob.PARSE_END == e) {
                     run = false;
                     break;
                 }
                 e.run();
-                position++;
             }
             Thread.yield();
         }
