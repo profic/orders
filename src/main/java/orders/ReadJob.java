@@ -8,7 +8,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 
 public class ReadJob {
@@ -16,8 +15,8 @@ public class ReadJob {
     public static final String END = "END";
 
     private final BlockingQueue<String> readArr;
-    private final Path                         path;
-    private final ExecutorService              executor;
+    private final Path                  path;
+    private final ExecutorService       executor;
 
     public ReadJob(int size, final Path path, final ExecutorService executor) {
         readArr = new LinkedBlockingQueue<>(size);

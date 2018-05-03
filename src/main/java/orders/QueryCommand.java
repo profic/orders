@@ -46,7 +46,7 @@ public class QueryCommand implements Runnable {
         int priceBeginIdx = s.lastIndexOf(',') + 1;
         int price         = Utils.parseInt(s, priceBeginIdx, s.length());
 
-        int bidSize  = bids.getSize(price);
+        int bidSize = bids.getSize(price);
         int askSize = asks.getSize(price);
 
         System.out.println(bidSize + askSize);

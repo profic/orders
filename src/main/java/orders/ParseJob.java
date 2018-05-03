@@ -4,16 +4,15 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class ParseJob {
 
     public static final Runnable PARSE_END = () -> {};
 
-    private final ExecutorService                executor;
+    private final ExecutorService         executor;
     private final BlockingQueue<Runnable> parsedArr;
-    private final OrdersContainer                bids;
-    private final OrdersContainer                asks;
+    private final OrdersContainer         bids;
+    private final OrdersContainer         asks;
 
     public ParseJob(
             final ExecutorService executor,
@@ -30,7 +29,7 @@ public class ParseJob {
 
     public Future<?> parse(final BlockingQueue<String> readArr) {
         return executor.submit(() -> {
-            boolean run      = true;
+            boolean run = true;
 
             BlockingQueue<Runnable> parsedArr = this.parsedArr;
             while (run) {
